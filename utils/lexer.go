@@ -25,11 +25,11 @@ func Tokenize(source string) []Word {
 			continue
 		default:
 			tokens = append(tokens, Word{
-				Raw: raw,
-				Type: tokenType, 
-				Line: line,
+				Raw:   raw,
+				Type:  tokenType,
+				Line:  line,
 				Start: start,
-				End: end,
+				End:   end,
 			})
 		}
 	}

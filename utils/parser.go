@@ -42,7 +42,9 @@ func (p *Parser) ParseProgram() (*Program, error) {
 
 func (p *Parser) scanExpression() (*ExpressionStatement, error) {
 	exp, err := p.scanPrimary()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return &ExpressionStatement{
 		expression: exp,
 	}, nil
@@ -50,24 +52,26 @@ func (p *Parser) scanExpression() (*ExpressionStatement, error) {
 
 func (p *Parser) scanPrimary() (Expression, error) {
 	token, isEnd := p.tokens.next()
-	if isEnd { return nil, p.throw("Expected expression but reached end of file")}
+	if isEnd {
+		return nil, p.throw("Expected expression but reached end of file")
+	}
 	switch token.Type {
 	case INTEGER:
 		value, _ := strconv.Atoi(token.Raw)
-		return &IntegerLiteral { value: int64(value)}, nil
+		return &IntegerLiteral{value: int64(value)}, nil
 	case FLOAT:
 		value, _ := strconv.ParseFloat(token.Raw, 64)
-		return &FloatLiteral { value: value }, nil
+		return &FloatLiteral{value: value}, nil
 	case STRING:
-		return &StringLiteral { value: token.Raw }, nil
+		return &StringLiteral{value: token.Raw}, nil
 	case K_TRUE, K_FALSE:
 		value := false
 		if token.Type == K_TRUE {
 			value = true
 		}
-		return &BooleanLiteral{ value: value }, nil
+		return &BooleanLiteral{value: value}, nil
 	case IDENTIFIER:
-		return &Identifier{ name: token.Raw }, nil
+		return &Identifier{name: token.Raw}, nil
 	}
 	return nil, p.throw("Invalid Syntax")
 }
