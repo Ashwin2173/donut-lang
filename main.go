@@ -17,9 +17,14 @@ func main() {
 		fmt.Println("ERROR:", err)
 		printUsage(true)
 	}
-	for _, item := range utils.Tokenize(string(file)) {
-		fmt.Println(item)
+	parser := utils.NewParser(args[1], string(file))
+	// debugging code
+	program, err := parser.ParseProgram()
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	fmt.Println(program)
 }
 
 func printUsage(shouldExit bool) {
