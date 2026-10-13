@@ -59,8 +59,21 @@ type BooleanLiteral struct {
 	value bool
 }
 
-func (Identifier) isExpression()     {}
-func (FloatLiteral) isExpression()   {}
-func (StringLiteral) isExpression()  {}
-func (BooleanLiteral) isExpression() {}
-func (IntegerLiteral) isExpression() {}
+type UnaryExpression struct {
+	unaryType TokenType
+	value     Expression
+}
+
+type BinaryExpression struct {
+	left       Expression
+	binaryType TokenType
+	right      Expression
+}
+
+func (Identifier) isExpression()       {}
+func (FloatLiteral) isExpression()     {}
+func (StringLiteral) isExpression()    {}
+func (BooleanLiteral) isExpression()   {}
+func (IntegerLiteral) isExpression()   {}
+func (UnaryExpression) isExpression()  {}
+func (BinaryExpression) isExpression() {}
