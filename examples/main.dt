@@ -1,1 +1,3 @@
-"string" + "string" == "stringstring" and true
+{
+    x + 1;
+}

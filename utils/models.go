@@ -17,6 +17,7 @@ type Program struct {
 
 type ExpressionStatement struct {
 	expression Expression
+	line       uint
 }
 
 type FunctionStatement struct {
@@ -27,6 +28,7 @@ type FunctionStatement struct {
 
 type BlockStatement struct {
 	body []Statement
+	line uint
 }
 
 type ReturnStatement struct {

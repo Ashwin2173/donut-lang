@@ -22,33 +22,66 @@ func NewParser(fileName, source string) *Parser {
 
 func (p *Parser) ParseProgram() (*Program, error) {
 	// mocking program for testing
-	expression, err := p.scanExpression()
+	body, err := p.scanBlockStatement()
 	if err != nil {
 		return nil, err
 	}
 	return &Program{
-		functions: []FunctionStatement{
-			FunctionStatement{
-				name:      "main",
-				arguments: []Identifier{},
-				body: BlockStatement{
-					body: []Statement{
-						expression,
-					},
-				},
-			},
-		},
+		functions: []FunctionStatement{{
+			name:      "main",
+			arguments: []Identifier{},
+			body:      *body,
+		}},
 	}, nil
 }
 
-func (p *Parser) scanExpression() (*ExpressionStatement, error) {
-	exp, err := p.scanLogicalOr()
+func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
+	openBrace, err := p.expectToken(OPEN_BRACE)
+	if err != nil {
+		return nil, p.fail("Expected '{' at the start of block")
+	}
+	body := []Statement{}
+	for {
+		token, isEnd := p.tokens.peek()
+		if isEnd {
+			return nil, p.fail("Reached End of File while parsing block")
+		}
+		if token.Type == CLOSE_BRACE {
+			return &BlockStatement{
+				body: body,
+				line: openBrace.Line,
+			}, nil
+		}
+		statement, err := p.scanLocalStatement(token)
+		if err != nil {
+			return nil, err
+		}
+		body = append(body, statement)
+	}
+}
+
+func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
+	return p.scanExpressionStatement()
+}
+
+func (p *Parser) scanExpressionStatement() (*ExpressionStatement, error) {
+	token, _ := p.tokens.peek()
+	exp, err := p.scanExpression()
 	if err != nil {
 		return nil, err
 	}
+	token, isEnd := p.tokens.next()
+	if isEnd || token.Type != SEMICOLON {
+		return nil, p.fail("Expected Semicolon after expression")
+	}
 	return &ExpressionStatement{
 		expression: exp,
+		line:       token.Line,
 	}, nil
+}
+
+func (p *Parser) scanExpression() (Expression, error) {
+	return p.scanLogicalOr()
 }
 
 func (p *Parser) scanLogicalOr() (Expression, error) {
@@ -144,17 +177,17 @@ func (p *Parser) makeBinary(callNext func() (Expression, error), operators ...To
 	}
 }
 
-func (p *Parser) expectToken(tokenType TokenType) error {
+func (p *Parser) expectToken(tokenType TokenType) (Word, error) {
 	token, isEnd := p.tokens.next()
 	if isEnd {
 		message := fmt.Sprintf("Expected %s but reached end of file", GROUP_NAMES[tokenType])
-		return p.fail(message)
+		return token, p.fail(message)
 	}
 	if token.Type != tokenType {
 		message := fmt.Sprintf("Expected %s but got %s", GROUP_NAMES[tokenType], GROUP_NAMES[token.Type])
-		return p.fail(message)
+		return token, p.fail(message)
 	}
-	return nil
+	return token, nil
 }
 
 func (p *Parser) fail(message string) error {

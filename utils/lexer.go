@@ -33,6 +33,6 @@ func Tokenize(source string) []Word {
 			})
 		}
 	}
-	tokens = append(tokens, Word{"EOF", K_EOF, 0, 0, 0})
+	// tokens = append(tokens, Word{"EOF", K_EOF, line, 0, 0})
 	return tokens
 }
