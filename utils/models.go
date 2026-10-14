@@ -32,14 +32,16 @@ type BlockStatement struct {
 }
 
 type ReturnStatement struct {
-	Statement
-	expression *ExpressionStatement
+	expression Expression
+	line       uint
 }
 
 func (BlockStatement) isStatement()      {}
 func (ReturnStatement) isStatement()     {}
 func (FunctionStatement) isStatement()   {}
 func (ExpressionStatement) isStatement() {}
+
+type NullLiteral struct{}
 
 type Identifier struct {
 	name string
@@ -73,6 +75,7 @@ type BinaryExpression struct {
 }
 
 func (Identifier) isExpression()       {}
+func (NullLiteral) isExpression()      {}
 func (FloatLiteral) isExpression()     {}
 func (StringLiteral) isExpression()    {}
 func (BooleanLiteral) isExpression()   {}

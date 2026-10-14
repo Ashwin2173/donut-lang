@@ -21,6 +21,9 @@ func NewParser(fileName, source string) *Parser {
 }
 
 func (p *Parser) ParseProgram() (*Program, error) {
+	if len(p.tokens.data) == 0 {
+		return nil, p.fail("provided file is empty; start by writing 'function' keyword")
+	}
 	functions := []FunctionStatement{}
 	for {
 		token, isEnd := p.tokens.peek()
@@ -75,7 +78,7 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 	for {
 		token, isEnd := p.tokens.peek()
 		if isEnd {
-			return nil, p.fail("Reached End of File while parsing block")
+			return nil, p.fail("Reached End of File while parsing block; Expected '}'")
 		}
 		if token.Type == CLOSE_BRACE {
 			p.tokens.next()
@@ -93,7 +96,34 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 }
 
 func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
+	switch token.Type {
+	case K_RETURN:
+		return p.scanReturnStatement()
+	}
 	return p.scanExpressionStatement()
+}
+
+func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {
+	ret, _ := p.tokens.next()
+	token, isEnd := p.tokens.peek()
+	if isEnd {
+		return nil, p.fail("Expected an expression or semicolon after return")
+	}
+	var expression Expression
+	if token.Type == SEMICOLON {
+		p.tokens.next()
+		expression = NullLiteral{}
+	} else {
+		expstmt, err := p.scanExpressionStatement()
+		if err != nil {
+			return nil, err
+		}
+		expression = expstmt.expression
+	}
+	return &ReturnStatement{
+		expression: expression,
+		line:       ret.Line,
+	}, nil
 }
 
 func (p *Parser) scanExpressionStatement() (*ExpressionStatement, error) {
