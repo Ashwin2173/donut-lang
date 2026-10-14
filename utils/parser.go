@@ -21,17 +21,48 @@ func NewParser(fileName, source string) *Parser {
 }
 
 func (p *Parser) ParseProgram() (*Program, error) {
-	// mocking program for testing
+	functions := []FunctionStatement{}
+	for {
+		token, isEnd := p.tokens.peek()
+		if isEnd {
+			break
+		}
+		if token.Type == K_FUNCTION {
+			p.tokens.next()
+			function, err := p.scanFunctionDef()
+			if err != nil {
+				return nil, err
+			}
+			functions = append(functions, *function)
+		} else {
+			return nil, p.fail("Expected function definition in global scope")
+		}
+	}
+	return &Program{
+		functions: functions,
+	}, nil
+}
+
+func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
+	name, err := p.expectToken(IDENTIFIER)
+	if err != nil {
+		return nil, p.fail("Expected a function name")
+	}
+	_, err = p.expectToken(OPEN_PARAM)
+	if err != nil {
+		return nil, p.fail("Expected '(' after the function name")
+	}
+	_, err = p.expectToken(CLOSE_PARAM)
+	if err != nil {
+		return nil, p.fail("Expected ')'")
+	}
 	body, err := p.scanBlockStatement()
 	if err != nil {
 		return nil, err
 	}
-	return &Program{
-		functions: []FunctionStatement{{
-			name:      "main",
-			arguments: []Identifier{},
-			body:      *body,
-		}},
+	return &FunctionStatement{
+		name: name.Raw,
+		body: *body,
 	}, nil
 }
 
@@ -47,6 +78,7 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 			return nil, p.fail("Reached End of File while parsing block")
 		}
 		if token.Type == CLOSE_BRACE {
+			p.tokens.next()
 			return &BlockStatement{
 				body: body,
 				line: openBrace.Line,

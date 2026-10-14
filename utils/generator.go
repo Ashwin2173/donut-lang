@@ -23,6 +23,10 @@ func (g *Generator[T]) next() (value T, isEnd bool) {
 func (g Generator[T]) peek() (T, bool) {
 	length := len(g.data)
 	if g.pointer >= length {
+		if length == 0 {
+			var null T
+			return null, true
+		}
 		return g.data[length-1], true
 	}
 	return g.data[g.pointer], false
