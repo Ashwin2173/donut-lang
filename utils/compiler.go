@@ -11,7 +11,7 @@ const MINOR uint16 = 62
 
 type Compiler struct {
 	fileName  string
-	className string
+	ClassName string
 	parser    Parser
 	bc        ByteCode
 	cp        ConstantPool
@@ -41,8 +41,7 @@ func (c *Compiler) Compile() error {
 	}
 	programByteCode := c.compileProgram(*program)
 
-	c.bc.writeU2(c.cp.length())
-	fmt.Println(c.cp.bc)
+	c.bc.writeU2(c.cp.length() + 1)
 	c.bc.dump(c.cp.bc)
 	c.bc.dump(programByteCode)
 	return err
@@ -51,11 +50,11 @@ func (c *Compiler) Compile() error {
 func (c *Compiler) compileProgram(program Program) (pbc ByteCode) {
 	fileName := filepath.Base(c.fileName)
 	ext := filepath.Ext(fileName)
-	className := fileName[:len(fileName)-len(ext)]
+	c.ClassName = fileName[:len(fileName)-len(ext)]
 
 	// class infos
 	pbc.writeU2(0x1)                               // making source class public
-	pbc.writeU2(c.cp.AddClass(className))          // this class name
+	pbc.writeU2(c.cp.AddClass(c.ClassName))        // this class name
 	pbc.writeU2(c.cp.AddClass("java/lang/Object")) // super class Name
 	pbc.writeU2(0)                                 // interface count
 	pbc.writeU2(0)                                 // fields count
@@ -74,7 +73,7 @@ func (c *Compiler) compileProgram(program Program) (pbc ByteCode) {
 	return
 }
 
-func (c Compiler) compileFunction(function FunctionStatement) ByteCode {
+func (c *Compiler) compileFunction(function FunctionStatement) ByteCode {
 	var fbc ByteCode
 	fbc.writeU2(0x9)                                    // access flag [public, static]; All functions are defaulted to this
 	fbc.writeU2(c.cp.AddUtf8(function.name))            // function Name

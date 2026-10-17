@@ -23,8 +23,9 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	err = os.WriteFile(args[1] + utils.TAGET_EXTENSION, compiler.GetByteCode(), 0644)
-	if err !=  nil {
+	// test write this will be udated.
+	err = os.WriteFile(args[1][:len(args[1])-3]+utils.TAGET_EXTENSION, compiler.GetByteCode(), 0644)
+	if err != nil {
 		fmt.Println(err)
 	}
 }

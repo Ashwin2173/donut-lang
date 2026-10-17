@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	FILE_EXTENSION = ".dt"
+	FILE_EXTENSION  = ".dt"
 	TAGET_EXTENSION = ".class"
 )
 
