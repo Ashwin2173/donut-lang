@@ -1,0 +1,117 @@
+package utils
+
+import (
+	"fmt"
+	"path/filepath"
+)
+
+const MAGIC uint32 = 0xCAFEBABE
+const MAJOR uint16 = 0
+const MINOR uint16 = 62
+
+type Compiler struct {
+	fileName  string
+	ClassName string
+	parser    Parser
+	bc        ByteCode
+	cp        ConstantPool
+}
+
+func NewCompiler(fileName, source string) *Compiler {
+	bc := NewByteCode()
+	bc.writeU4(MAGIC)
+	bc.writeU2(MAJOR)
+	bc.writeU2(MINOR)
+	return &Compiler{
+		fileName: fileName,
+		parser:   *NewParser(fileName, source),
+		cp:       *NewConstantPool(),
+		bc:       bc,
+	}
+}
+
+func (c *Compiler) GetByteCode() []byte {
+	return c.bc.byteCode
+}
+
+func (c *Compiler) Compile() error {
+	program, err := c.parser.ParseProgram()
+	if err != nil {
+		return err
+	}
+	programByteCode := c.compileProgram(*program)
+
+	c.bc.writeU2(c.cp.length() + 1)
+	c.bc.dump(c.cp.bc)
+	c.bc.dump(programByteCode)
+	return err
+}
+
+func (c *Compiler) compileProgram(program Program) (pbc ByteCode) {
+	fileName := filepath.Base(c.fileName)
+	ext := filepath.Ext(fileName)
+	c.ClassName = fileName[:len(fileName)-len(ext)]
+
+	// class infos
+	pbc.writeU2(0x1)                               // making source class public
+	pbc.writeU2(c.cp.AddClass(c.ClassName))        // this class name
+	pbc.writeU2(c.cp.AddClass("java/lang/Object")) // super class Name
+	pbc.writeU2(0)                                 // interface count
+	pbc.writeU2(0)                                 // fields count
+	pbc.writeU2(uint16(len(program.functions)))
+
+	// functions
+	for _, function := range program.functions {
+		pbc.dump(c.compileFunction(function))
+	}
+
+	// class attrs
+	pbc.writeU2(0x1)
+	pbc.writeU2(c.cp.AddUtf8("SourceFile"))
+	pbc.writeU4(0x2)
+	pbc.writeU2(c.cp.AddUtf8(fileName))
+	return
+}
+
+func (c *Compiler) compileFunction(function FunctionStatement) ByteCode {
+	var fbc ByteCode
+	fbc.writeU2(0x9)                                    // access flag [public, static]; All functions are defaulted to this
+	fbc.writeU2(c.cp.AddUtf8(function.name))            // function Name
+	fbc.writeU2(c.cp.AddUtf8("([Ljava/lang/String;)V")) // function arg string; todo: unhardcode this
+	fbc.writeU2(0x1)                                    // attr count; current only code exits
+
+	// code attr
+	fbc.writeU2(c.cp.AddUtf8("Code"))
+	codeAttr := c.compileCodeAttr(function.body)
+	fbc.writeU4(uint32(codeAttr.length()))
+	fbc.dump(codeAttr)
+
+	return fbc
+}
+
+func (c Compiler) compileCodeAttr(body BlockStatement) ByteCode {
+	bc := NewByteCode()
+	bc.writeU2(256) // max stack size; todo: unhardcode this.
+	bc.writeU2(1)   //max locals; todo: unhardcode this.
+
+	stmtByteCode := c.compileStatement(body.body)
+	bc.writeU4(uint32(stmtByteCode.length()))
+	bc.dump(stmtByteCode)
+
+	bc.writeU2(0) // exception table
+	bc.writeU2(0) // attribute count
+	return bc
+}
+
+func (c Compiler) compileStatement(stmts []Statement) ByteCode {
+	bc := NewByteCode()
+	for _, stmt := range stmts {
+		switch stmt.(type) {
+		case *ReturnStatement:
+			bc.writeU1(OP_RETURN)
+		default:
+			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
+		}
+	}
+	return bc
+}

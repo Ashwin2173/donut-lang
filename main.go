@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 
 	"donut/utils"
 )
@@ -17,8 +17,16 @@ func main() {
 		fmt.Println("ERROR:", err)
 		printUsage(true)
 	}
-	for _, item := range utils.Tokenize(string(file)) {
-		fmt.Println(item)
+	compiler := utils.NewCompiler(args[1], string(file))
+	err = compiler.Compile()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// test write this will be udated.
+	err = os.WriteFile(args[1][:len(args[1])-3]+utils.TAGET_EXTENSION, compiler.GetByteCode(), 0644)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
