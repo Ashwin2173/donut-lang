@@ -47,7 +47,7 @@ type ConstantMethodRef struct {
 func (c ConstantUtf8) isConstant()        {}
 func (c ConstantClass) isConstant()       {}
 func (c ConstantString) isConstant()      {}
-func (c ConstantInteger) isConstant()      {}
+func (c ConstantInteger) isConstant()     {}
 func (c ConstantMethodRef) isConstant()   {}
 func (c ConstantNameAndType) isConstant() {}
 
@@ -82,7 +82,7 @@ func (cp *ConstantPool) AddString(value string) (index uint16) {
 }
 
 func (cp *ConstantPool) AddInteger(value int32) (index uint16) {
-	newConstant := ConstantInteger {
+	newConstant := ConstantInteger{
 		value: value,
 	}
 	index, exists := cp.constantPool[newConstant]

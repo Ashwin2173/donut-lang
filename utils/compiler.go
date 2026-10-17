@@ -128,7 +128,7 @@ func (c *Compiler) compileExpression(exp Expression) (bc ByteCode) {
 	case *BooleanLiteral:
 		var value int32 = 0
 		if exp.value {
-			value = 1 
+			value = 1
 		}
 		intIndex := c.cp.AddInteger(value)
 		bc.opLoadConstant(intIndex)
