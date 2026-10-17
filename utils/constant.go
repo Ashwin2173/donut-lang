@@ -23,6 +23,7 @@ const (
 	COMMENT        TokenType = iota
 	K_FUNCTION     TokenType = iota
 	K_RETURN       TokenType = iota
+	K_PRINT        TokenType = iota
 	K_TRUE         TokenType = iota
 	K_FALSE        TokenType = iota
 	K_AND          TokenType = iota
@@ -55,6 +56,7 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<COMMENT>//[^\n]*)`,
 	`(?P<KEYWORD_FUNCTION>\bfunction\b)`,
 	`(?P<KETWORD_RETURN>\breturn\b)`,
+	`(?P<KETWORD_PRINT>\bprint\b)`,
 	`(?P<KETWORD_TRUE>\btrue\b)`,
 	`(?P<KETWORD_FALSE>\bfalse\b)`,
 	`(?P<KETWORD_AND>\band\b)`,
@@ -84,7 +86,9 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 
 var GROUP_NAMES = TOKEN_GRAMMAR.SubexpNames()
 
-// Compiler const
 const (
-	OP_RETURN = 0xB1
+	OP_RETURN          = 0xB1
+	OP_LOAD_CONSTANT   = 0x12
+	OP_LOAD_CONSTANT_W = 0x13
+	OP_INVOKE_STATIC   = 0xB8
 )

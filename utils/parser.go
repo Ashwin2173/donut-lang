@@ -99,8 +99,34 @@ func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
 	switch token.Type {
 	case K_RETURN:
 		return p.scanReturnStatement()
+	case K_PRINT: // temp code
+		return p.scanPrintStatement()
 	}
 	return p.scanExpressionStatement()
+}
+
+func (p *Parser) scanPrintStatement() (*PrintStatement, error) {
+	// temp code
+	ret, _ := p.tokens.next()
+	token, isEnd := p.tokens.peek()
+	if isEnd {
+		return nil, p.fail("Expected an expression or semicolon after return")
+	}
+	var expression Expression
+	if token.Type == SEMICOLON {
+		p.tokens.next()
+		expression = NullLiteral{}
+	} else {
+		expstmt, err := p.scanExpressionStatement()
+		if err != nil {
+			return nil, err
+		}
+		expression = expstmt.expression
+	}
+	return &PrintStatement{
+		expression: expression,
+		line:       ret.Line,
+	}, nil
 }
 
 func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {

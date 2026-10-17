@@ -43,6 +43,7 @@ func (c *Compiler) Compile() error {
 
 	c.bc.writeU2(c.cp.length() + 1)
 	c.bc.dump(c.cp.bc)
+	fmt.Println(c.cp.constantPool)
 	c.bc.dump(programByteCode)
 	return err
 }
@@ -89,7 +90,7 @@ func (c *Compiler) compileFunction(function FunctionStatement) ByteCode {
 	return fbc
 }
 
-func (c Compiler) compileCodeAttr(body BlockStatement) ByteCode {
+func (c *Compiler) compileCodeAttr(body BlockStatement) ByteCode {
 	bc := NewByteCode()
 	bc.writeU2(256) // max stack size; todo: unhardcode this.
 	bc.writeU2(1)   //max locals; todo: unhardcode this.
@@ -103,12 +104,15 @@ func (c Compiler) compileCodeAttr(body BlockStatement) ByteCode {
 	return bc
 }
 
-func (c Compiler) compileStatement(stmts []Statement) ByteCode {
+func (c *Compiler) compileStatement(stmts []Statement) ByteCode {
 	bc := NewByteCode()
 	for _, stmt := range stmts {
 		switch stmt.(type) {
 		case *ReturnStatement:
-			bc.writeU1(OP_RETURN)
+			bc.opReturn()
+		case *PrintStatement:
+			bc.opLoadConstant(c.cp.AddString("Hello, World"))
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(Ljava/lang/Object;)V")) // console.log(<string>) method; todo: unhardcode this
 		default:
 			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
 		}

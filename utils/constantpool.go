@@ -26,8 +26,25 @@ type ConstantClass struct {
 	index uint16
 }
 
-func (c ConstantUtf8) isConstant()  {}
-func (c ConstantClass) isConstant() {}
+type ConstantString struct {
+	index uint16
+}
+
+type ConstantNameAndType struct {
+	nameIndex       uint16
+	descriptorIndex uint16
+}
+
+type ConstantMethodRef struct {
+	classIndex       uint16
+	nameAndTypeIndex uint16
+}
+
+func (c ConstantUtf8) isConstant()        {}
+func (c ConstantClass) isConstant()       {}
+func (c ConstantString) isConstant()      {}
+func (c ConstantMethodRef) isConstant()   {}
+func (c ConstantNameAndType) isConstant() {}
 
 func (cp *ConstantPool) AddUtf8(value string) (index uint16) {
 	newConstant := ConstantUtf8{
@@ -44,6 +61,21 @@ func (cp *ConstantPool) AddUtf8(value string) (index uint16) {
 	return
 }
 
+func (cp *ConstantPool) AddString(value string) (index uint16) {
+	stringIndex := cp.AddUtf8(value)
+	newConstant := ConstantString{
+		index: stringIndex,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		cp.bc.writeU1(0x8)
+		cp.bc.writeU2(stringIndex)
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
 func (cp *ConstantPool) AddClass(name string) (index uint16) {
 	nameIndex := cp.AddUtf8(name)
 	newConstant := ConstantClass{
@@ -53,6 +85,42 @@ func (cp *ConstantPool) AddClass(name string) (index uint16) {
 	if !exists {
 		cp.bc.writeU1(0x7)       //type
 		cp.bc.writeU2(nameIndex) // nameIndex
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
+func (cp *ConstantPool) AddNameAndType(name, descriptor string) (index uint16) {
+	nameIndex := cp.AddUtf8(name)
+	descriptorIndex := cp.AddUtf8(descriptor)
+	newConstant := ConstantNameAndType{
+		nameIndex:       nameIndex,
+		descriptorIndex: descriptorIndex,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		cp.bc.writeU1(0xC)
+		cp.bc.writeU2(nameIndex)
+		cp.bc.writeU2(descriptorIndex)
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
+func (cp *ConstantPool) AddMethodRef(class, name, descriptor string) (index uint16) {
+	classIndex := cp.AddClass(class)
+	nameAndTypeIndex := cp.AddNameAndType(name, descriptor)
+	newConstant := ConstantMethodRef{
+		classIndex:       classIndex,
+		nameAndTypeIndex: nameAndTypeIndex,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		cp.bc.writeU1(0xA)
+		cp.bc.writeU2(classIndex)
+		cp.bc.writeU2(nameAndTypeIndex)
 		index = uint16(len(cp.constantPool)) + 1
 		cp.constantPool[newConstant] = index
 	}
