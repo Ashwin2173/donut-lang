@@ -30,6 +30,10 @@ type ConstantString struct {
 	index uint16
 }
 
+type ConstantInteger struct {
+	value int32
+}
+
 type ConstantNameAndType struct {
 	nameIndex       uint16
 	descriptorIndex uint16
@@ -43,6 +47,7 @@ type ConstantMethodRef struct {
 func (c ConstantUtf8) isConstant()        {}
 func (c ConstantClass) isConstant()       {}
 func (c ConstantString) isConstant()      {}
+func (c ConstantInteger) isConstant()      {}
 func (c ConstantMethodRef) isConstant()   {}
 func (c ConstantNameAndType) isConstant() {}
 
@@ -70,6 +75,20 @@ func (cp *ConstantPool) AddString(value string) (index uint16) {
 	if !exists {
 		cp.bc.writeU1(0x8)
 		cp.bc.writeU2(stringIndex)
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
+func (cp *ConstantPool) AddInteger(value int32) (index uint16) {
+	newConstant := ConstantInteger {
+		value: value,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		cp.bc.writeU1(0x3)
+		cp.bc.writeU4(uint32(value))
 		index = uint16(len(cp.constantPool)) + 1
 		cp.constantPool[newConstant] = index
 	}

@@ -229,7 +229,7 @@ func (p *Parser) scanPrimary() (Expression, error) {
 		value, _ := strconv.ParseFloat(token.Raw, 64)
 		return &FloatLiteral{value: value}, nil
 	case STRING:
-		return &StringLiteral{value: token.Raw}, nil
+		return &StringLiteral{value: token.Raw[1 : len(token.Raw)-1]}, nil
 	case K_TRUE, K_FALSE:
 		value := false
 		if token.Type == K_TRUE {

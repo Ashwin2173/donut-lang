@@ -74,8 +74,7 @@ func (c *Compiler) compileProgram(program Program) (pbc ByteCode) {
 	return
 }
 
-func (c *Compiler) compileFunction(function FunctionStatement) ByteCode {
-	var fbc ByteCode
+func (c *Compiler) compileFunction(function FunctionStatement) (fbc ByteCode) {
 	fbc.writeU2(0x9)                                    // access flag [public, static]; All functions are defaulted to this
 	fbc.writeU2(c.cp.AddUtf8(function.name))            // function Name
 	fbc.writeU2(c.cp.AddUtf8("([Ljava/lang/String;)V")) // function arg string; todo: unhardcode this
@@ -87,11 +86,10 @@ func (c *Compiler) compileFunction(function FunctionStatement) ByteCode {
 	fbc.writeU4(uint32(codeAttr.length()))
 	fbc.dump(codeAttr)
 
-	return fbc
+	return
 }
 
-func (c *Compiler) compileCodeAttr(body BlockStatement) ByteCode {
-	bc := NewByteCode()
+func (c *Compiler) compileCodeAttr(body BlockStatement) (bc ByteCode) {
 	bc.writeU2(256) // max stack size; todo: unhardcode this.
 	bc.writeU2(1)   //max locals; todo: unhardcode this.
 
@@ -101,21 +99,41 @@ func (c *Compiler) compileCodeAttr(body BlockStatement) ByteCode {
 
 	bc.writeU2(0) // exception table
 	bc.writeU2(0) // attribute count
-	return bc
+	return
 }
 
-func (c *Compiler) compileStatement(stmts []Statement) ByteCode {
-	bc := NewByteCode()
+func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 	for _, stmt := range stmts {
-		switch stmt.(type) {
+		switch stmt := stmt.(type) {
 		case *ReturnStatement:
 			bc.opReturn()
 		case *PrintStatement:
-			bc.opLoadConstant(c.cp.AddString("Hello, World"))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(Ljava/lang/Object;)V")) // console.log(<string>) method; todo: unhardcode this
+			bc.dump(c.compileExpression(stmt.expression))
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(I)V")) // console.log(<string>) method; todo: unhardcode this
 		default:
 			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
 		}
 	}
-	return bc
+	return
+}
+
+func (c *Compiler) compileExpression(exp Expression) (bc ByteCode) {
+	switch exp := exp.(type) {
+	case *StringLiteral:
+		stringIndex := c.cp.AddString(exp.value)
+		bc.opLoadConstant(stringIndex)
+	case *IntegerLiteral:
+		intIndex := c.cp.AddInteger(int32(exp.value))
+		bc.opLoadConstant(intIndex)
+	case *BooleanLiteral:
+		var value int32 = 0
+		if exp.value {
+			value = 1 
+		}
+		intIndex := c.cp.AddInteger(value)
+		bc.opLoadConstant(intIndex)
+	default:
+		panic(fmt.Sprintf("Unhandled expression type: %T", exp))
+	}
+	return
 }
