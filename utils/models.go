@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"encoding/binary"
+)
+
 type Word struct {
 	Raw   string
 	Type  TokenType
@@ -82,3 +86,37 @@ func (BooleanLiteral) isExpression()   {}
 func (IntegerLiteral) isExpression()   {}
 func (UnaryExpression) isExpression()  {}
 func (BinaryExpression) isExpression() {}
+
+type ByteCode struct {
+	byteCode []byte
+}
+
+func NewByteCode() ByteCode {
+	return ByteCode{
+		byteCode: []byte{},
+	}
+}
+
+func (b *ByteCode) length() int {
+	return len(b.byteCode)
+}
+
+func (b *ByteCode) writeU1(value byte) {
+	b.byteCode = append(b.byteCode, value)
+}
+
+func (b *ByteCode) writeU2(value uint16) {
+	b.byteCode = binary.BigEndian.AppendUint16(b.byteCode, value)
+}
+
+func (b *ByteCode) writeU4(value uint32) {
+	b.byteCode = binary.BigEndian.AppendUint32(b.byteCode, value)
+}
+
+func (b *ByteCode) dump(byteCode ByteCode) {
+	b.byteCode = append(b.byteCode, byteCode.byteCode...)
+}
+
+func (b *ByteCode) dumpRaw(bytes []byte) {
+	b.byteCode = append(b.byteCode, bytes...)
+}

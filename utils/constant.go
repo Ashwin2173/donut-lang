@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+const (
+	FILE_EXTENSION = ".dt"
+	TAGET_EXTENSION = ".class"
+)
+
 type TokenType int
 type StatementType int
 
@@ -78,3 +83,8 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 }, "|"))
 
 var GROUP_NAMES = TOKEN_GRAMMAR.SubexpNames()
+
+// Compiler const
+const (
+	OP_RETURN = 0xB1
+)

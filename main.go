@@ -17,14 +17,16 @@ func main() {
 		fmt.Println("ERROR:", err)
 		printUsage(true)
 	}
-	parser := utils.NewParser(args[1], string(file))
-	// debugging code
-	program, err := parser.ParseProgram()
+	compiler := utils.NewCompiler(args[1], string(file))
+	err = compiler.Compile()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(program)
+	err = os.WriteFile(args[1] + utils.TAGET_EXTENSION, compiler.GetByteCode(), 0644)
+	if err !=  nil {
+		fmt.Println(err)
+	}
 }
 
 func printUsage(shouldExit bool) {
