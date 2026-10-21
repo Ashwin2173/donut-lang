@@ -261,6 +261,7 @@ func (p *Parser) makeBinary(callNext func() (Expression, error), operators ...To
 			left:       left,
 			binaryType: token.Type,
 			right:      right,
+			line:       token.Line,
 		}
 	}
 }

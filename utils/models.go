@@ -76,9 +76,11 @@ type UnaryExpression struct {
 }
 
 type BinaryExpression struct {
-	left       Expression
-	binaryType TokenType
-	right      Expression
+	left         Expression
+	binaryType   TokenType
+	right        Expression
+	line         uint
+	resolvedInfo BinaryTypeResult
 }
 
 func (Identifier) isExpression()       {}
@@ -89,3 +91,13 @@ func (BooleanLiteral) isExpression()   {}
 func (IntegerLiteral) isExpression()   {}
 func (UnaryExpression) isExpression()  {}
 func (BinaryExpression) isExpression() {}
+
+type Pair[L any, R any] struct {
+	left  L
+	right R
+}
+
+type BinaryTypeResult struct {
+	result          TypeId
+	leftTo, rightTo func(*ByteCode)
+}

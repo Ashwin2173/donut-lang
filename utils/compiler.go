@@ -39,8 +39,12 @@ func (c *Compiler) Compile() error {
 	if err != nil {
 		return err
 	}
-	programByteCode := c.compileProgram(*program)
-
+	typeChecker := NewTypeChecker(c.parser.fileName, *program)
+	err = typeChecker.resolve()
+	if err != nil {
+		return err
+	}
+	programByteCode := c.compileProgram(typeChecker.program)
 	c.bc.writeU2(c.cp.length() + 1)
 	c.bc.dump(c.cp.bc)
 	fmt.Println(c.cp.constantPool)
@@ -110,6 +114,8 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 		case *PrintStatement:
 			bc.dump(c.compileExpression(stmt.expression))
 			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(I)V")) // console.log(<string>) method; todo: unhardcode this
+		case *ExpressionStatement:
+			c.compileExpression(stmt.expression)
 		default:
 			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
 		}
@@ -117,23 +123,43 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 	return
 }
 
-func (c *Compiler) compileExpression(exp Expression) (bc ByteCode) {
-	switch exp := exp.(type) {
+func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
+	switch expr := expr.(type) {
 	case *StringLiteral:
-		stringIndex := c.cp.AddString(exp.value)
+		stringIndex := c.cp.AddString(expr.value)
 		bc.opLoadConstant(stringIndex)
 	case *IntegerLiteral:
-		intIndex := c.cp.AddInteger(int32(exp.value))
+		intIndex := c.cp.AddInteger(int32(expr.value))
 		bc.opLoadConstant(intIndex)
 	case *BooleanLiteral:
 		var value int32 = 0
-		if exp.value {
+		if expr.value {
 			value = 1
 		}
 		intIndex := c.cp.AddInteger(value)
 		bc.opLoadConstant(intIndex)
+	case *BinaryExpression:
+		bc.dump(c.compileBinaryExpression(*expr))
 	default:
-		panic(fmt.Sprintf("Unhandled expression type: %T", exp))
+		panic(fmt.Sprintf("Unhandled expression type: %T", expr))
 	}
 	return
+}
+
+func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) {
+	bc = c.compileExpression(expr.left)
+	if expr.resolvedInfo.leftTo != nil {
+		panic("binary leftTo is not supported yet")
+	}
+	bc.dump(c.compileExpression(expr.right))
+	if expr.resolvedInfo.rightTo != nil {
+		panic("binary rightTo is not supported yet")
+	}
+	exprPair := Pair[TypeId, TokenType]{expr.resolvedInfo.result, expr.binaryType}
+	generator, exists := EXPR_OPERATION_TABLE[exprPair]
+	if !exists {
+		panic(fmt.Sprintln("Unhandled expr operation comination", exprPair))
+	}
+	generator(&bc)
+	return bc
 }

@@ -58,3 +58,11 @@ func (b *ByteCode) opInvokeStatic(index uint16) {
 	b.writeU1(OP_INVOKE_STATIC)
 	b.writeU2(index)
 }
+
+func (b *ByteCode) opIAdd() {
+	b.writeU1(OP_IADD)
+}
+
+func (b *ByteCode) opFAdd() {
+	b.writeU1(OP_FADD)
+}

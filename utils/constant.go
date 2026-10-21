@@ -10,6 +10,7 @@ const (
 	TAGET_EXTENSION = ".class"
 )
 
+type TypeId int32
 type TokenType int
 type StatementType int
 
@@ -87,8 +88,23 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 var GROUP_NAMES = TOKEN_GRAMMAR.SubexpNames()
 
 const (
+	T_UNKNOWN TypeId = iota
+	T_INT     TypeId = iota
+	T_FLOAT   TypeId = iota
+	T_STRING  TypeId = iota
+	T_BOOLEAN TypeId = iota
+)
+
+var EXPR_OPERATION_TABLE = map[Pair[TypeId, TokenType]]func(*ByteCode){
+	{T_INT, PLUS}:   (*ByteCode).opIAdd,
+	{T_FLOAT, PLUS}: (*ByteCode).opFAdd,
+}
+
+const (
 	OP_RETURN          = 0xB1
 	OP_LOAD_CONSTANT   = 0x12
 	OP_LOAD_CONSTANT_W = 0x13
 	OP_INVOKE_STATIC   = 0xB8
+	OP_IADD            = 0x60
+	OP_FADD            = 0x62
 )
