@@ -88,7 +88,7 @@ func (t *TypeChecker) handleBinaryExpression(expr *BinaryExpression) (TypeId, er
 	}
 	pair := Pair[TypeId, TypeId]{left, right}
 	resolvedInfo, exists := binaryRules[pair]
-	if exists {	
+	if exists {
 		expr.resolvedInfo = resolvedInfo
 		return resolvedInfo.result, nil
 	}

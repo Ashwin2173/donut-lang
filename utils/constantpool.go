@@ -1,5 +1,10 @@
 package utils
 
+import (
+	"encoding/binary"
+	"math"
+)
+
 type Constant interface{ isConstant() }
 
 type ConstantPool struct {
@@ -34,6 +39,10 @@ type ConstantInteger struct {
 	value int32
 }
 
+type ConstantFloat struct {
+	value float32
+}
+
 type ConstantNameAndType struct {
 	nameIndex       uint16
 	descriptorIndex uint16
@@ -46,6 +55,7 @@ type ConstantMethodRef struct {
 
 func (c ConstantUtf8) isConstant()        {}
 func (c ConstantClass) isConstant()       {}
+func (c ConstantFloat) isConstant()       {}
 func (c ConstantString) isConstant()      {}
 func (c ConstantInteger) isConstant()     {}
 func (c ConstantMethodRef) isConstant()   {}
@@ -89,6 +99,22 @@ func (cp *ConstantPool) AddInteger(value int32) (index uint16) {
 	if !exists {
 		cp.bc.writeU1(0x3)
 		cp.bc.writeU4(uint32(value))
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
+func (cp *ConstantPool) AddFloat(value float32) (index uint16) {
+	newConstant := ConstantFloat{
+		value: value,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		data := make([]byte, 4)
+		binary.BigEndian.PutUint32(data, math.Float32bits(value))
+		cp.bc.writeU1(0x4)
+		cp.bc.writeU4(binary.BigEndian.Uint32(data))
 		index = uint16(len(cp.constantPool)) + 1
 		cp.constantPool[newConstant] = index
 	}

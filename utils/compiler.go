@@ -113,7 +113,7 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 			bc.opReturn()
 		case *PrintStatement:
 			bc.dump(c.compileExpression(stmt.expression))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(I)V")) // console.log(<string>) method; todo: unhardcode this
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(F)V")) // console.log(<string>) method; todo: unhardcode this
 		case *ExpressionStatement:
 			c.compileExpression(stmt.expression)
 		default:
@@ -131,6 +131,9 @@ func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 	case *IntegerLiteral:
 		intIndex := c.cp.AddInteger(int32(expr.value))
 		bc.opLoadConstant(intIndex)
+	case *FloatLiteral:
+		floatIndex := c.cp.AddFloat(float32(expr.value))
+		bc.opLoadConstant(floatIndex)
 	case *BooleanLiteral:
 		var value int32 = 0
 		if expr.value {
