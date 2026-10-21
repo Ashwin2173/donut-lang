@@ -152,11 +152,11 @@ func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.left)
 	if expr.resolvedInfo.leftTo != nil {
-		panic("binary leftTo is not supported yet")
+		expr.resolvedInfo.leftTo(&bc)
 	}
 	bc.dump(c.compileExpression(expr.right))
 	if expr.resolvedInfo.rightTo != nil {
-		panic("binary rightTo is not supported yet")
+		expr.resolvedInfo.rightTo(&bc)
 	}
 	exprPair := Pair[TypeId, TokenType]{expr.resolvedInfo.result, expr.binaryType}
 	generator, exists := EXPR_OPERATION_TABLE[exprPair]

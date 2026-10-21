@@ -107,4 +107,5 @@ const (
 	OP_INVOKE_STATIC   = 0xB8
 	OP_IADD            = 0x60
 	OP_FADD            = 0x62
+	OP_I2F             = 0x86
 )

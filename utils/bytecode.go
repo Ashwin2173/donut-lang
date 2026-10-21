@@ -66,3 +66,7 @@ func (b *ByteCode) opIAdd() {
 func (b *ByteCode) opFAdd() {
 	b.writeU1(OP_FADD)
 }
+
+func (b *ByteCode) opI2F() {
+	b.writeU1(OP_I2F)
+}

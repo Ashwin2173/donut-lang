@@ -13,14 +13,17 @@ type TypeChecker struct {
 
 var binaryRules = map[Pair[TypeId, TypeId]]BinaryTypeResult{
 	{T_INT, T_INT}:     {T_INT, nil, nil},
+	{T_INT, T_FLOAT}:   {T_FLOAT, (*ByteCode).opI2F, nil},
+	{T_FLOAT, T_INT}:   {T_FLOAT, nil, (*ByteCode).opI2F},
 	{T_FLOAT, T_FLOAT}: {T_FLOAT, nil, nil},
 }
 
 func NewTypeChecker(fileName string, program Program) *TypeChecker {
 	defaultType := map[string]TypeId{
-		"int":    T_INT,
-		"float":  T_FLOAT,
-		"string": T_STRING,
+		"int":     T_INT,
+		"float":   T_FLOAT,
+		"string":  T_STRING,
+		"boolean": T_BOOLEAN,
 	}
 	return &TypeChecker{
 		fileName:     fileName,
