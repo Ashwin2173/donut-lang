@@ -151,18 +151,13 @@ func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 
 func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.left)
-	if expr.resolvedInfo.leftTo != nil {
-		expr.resolvedInfo.leftTo(&bc)
+	if expr.typeInfo.leftTo != nil {
+		expr.typeInfo.leftTo(&bc)
 	}
 	bc.dump(c.compileExpression(expr.right))
-	if expr.resolvedInfo.rightTo != nil {
-		expr.resolvedInfo.rightTo(&bc)
+	if expr.typeInfo.rightTo != nil {
+		expr.typeInfo.rightTo(&bc)
 	}
-	exprPair := Pair[TypeId, TokenType]{expr.resolvedInfo.result, expr.binaryType}
-	generator, exists := EXPR_OPERATION_TABLE[exprPair]
-	if !exists {
-		panic(fmt.Sprintln("Unhandled expr operation comination", exprPair))
-	}
-	generator(&bc)
+	expr.resolvedOpType(&bc)
 	return bc
 }

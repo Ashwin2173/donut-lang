@@ -95,11 +95,6 @@ const (
 	T_BOOLEAN TypeId = iota
 )
 
-var EXPR_OPERATION_TABLE = map[Pair[TypeId, TokenType]]func(*ByteCode){
-	{T_INT, PLUS}:   (*ByteCode).opIAdd,
-	{T_FLOAT, PLUS}: (*ByteCode).opFAdd,
-}
-
 const (
 	OP_RETURN          = 0xB1
 	OP_LOAD_CONSTANT   = 0x12
@@ -107,5 +102,7 @@ const (
 	OP_INVOKE_STATIC   = 0xB8
 	OP_IADD            = 0x60
 	OP_FADD            = 0x62
+	OP_ISUB            = 0x64
+	OP_FSUB            = 0x66
 	OP_I2F             = 0x86
 )

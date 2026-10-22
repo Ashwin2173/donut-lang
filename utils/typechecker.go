@@ -18,6 +18,13 @@ var binaryRules = map[Pair[TypeId, TypeId]]BinaryTypeResult{
 	{T_FLOAT, T_FLOAT}: {T_FLOAT, nil, nil},
 }
 
+var EXPR_OPERATION_TABLE = map[Pair[TypeId, TokenType]]func(*ByteCode){
+	{T_INT, PLUS}:    (*ByteCode).opIAdd,
+	{T_INT, MINUS}:   (*ByteCode).opISub,
+	{T_FLOAT, PLUS}:  (*ByteCode).opFAdd,
+	{T_FLOAT, MINUS}: (*ByteCode).opFSub,
+}
+
 func NewTypeChecker(fileName string, program Program) *TypeChecker {
 	defaultType := map[string]TypeId{
 		"int":     T_INT,
@@ -89,13 +96,19 @@ func (t *TypeChecker) handleBinaryExpression(expr *BinaryExpression) (TypeId, er
 	if err != nil {
 		return T_UNKNOWN, err
 	}
+	var exists bool
 	pair := Pair[TypeId, TypeId]{left, right}
-	resolvedInfo, exists := binaryRules[pair]
-	if exists {
-		expr.resolvedInfo = resolvedInfo
-		return resolvedInfo.result, nil
+	expr.typeInfo, exists = binaryRules[pair]
+	if !exists {
+		return T_UNKNOWN, t.fail("Invalid Binary Expression", expr.line)
 	}
-	return T_UNKNOWN, t.fail("Invalided Binary Expression", expr.line)
+	opKey := Pair[TypeId, TokenType]{expr.typeInfo.result, expr.binaryType}
+	expr.resolvedOpType, exists = EXPR_OPERATION_TABLE[opKey]
+	if !exists {
+		// this should be unreachable when all the rules are in place.
+		panic(fmt.Sprintf("Missing binary operation implementation for %v", opKey))
+	}
+	return expr.typeInfo.result, nil
 }
 
 func (t *TypeChecker) fail(message string, line uint) error {
