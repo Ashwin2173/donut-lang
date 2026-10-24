@@ -193,7 +193,7 @@ func (p *Parser) scanTerm() (Expression, error) {
 }
 
 func (p *Parser) scanFactor() (Expression, error) {
-	return p.makeBinary(p.scanUnary, STAR, SLASH)
+	return p.makeBinary(p.scanUnary, STAR, SLASH, MOD)
 }
 
 func (p *Parser) scanUnary() (Expression, error) {

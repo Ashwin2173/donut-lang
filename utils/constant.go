@@ -43,6 +43,7 @@ const (
 	MINUS          TokenType = iota
 	STAR           TokenType = iota
 	SLASH          TokenType = iota
+	MOD            TokenType = iota
 	BANG_EQUAL     TokenType = iota
 	EQUAL_EQUAL    TokenType = iota
 	LESSER_EQUALS  TokenType = iota
@@ -76,6 +77,7 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<MINUS>-)`,
 	`(?P<STAR>\*)`,
 	`(?P<SLASH>/)`,
+	`(?P<MOD>%)`,
 	`(?P<BANG_EQUAL>!=)`,
 	`(?P<EQUAL_EQUAL>==)`,
 	`(?P<LESSER_EQUALS><=)`,
@@ -104,9 +106,11 @@ const (
 	OP_ISUB            = 0x64
 	OP_IMUL            = 0x68
 	OP_IDIV            = 0x6C
+	OP_IREM            = 0x70
 	OP_FADD            = 0x62
 	OP_FSUB            = 0x66
 	OP_FMUL            = 0x6A
 	OP_FDIV            = 0x6E
+	OP_FREM            = 0x72
 	OP_I2F             = 0x86
 )

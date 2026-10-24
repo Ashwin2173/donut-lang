@@ -75,6 +75,10 @@ func (b *ByteCode) opIDiv() {
 	b.writeU1(OP_IDIV)
 }
 
+func (b *ByteCode) opIRem() {
+	b.writeU1(OP_IREM)
+}
+
 func (b *ByteCode) opFAdd() {
 	b.writeU1(OP_FADD)
 }
@@ -89,6 +93,10 @@ func (b *ByteCode) opFMul() {
 
 func (b *ByteCode) opFDiv() {
 	b.writeU1(OP_FDIV)
+}
+
+func (b *ByteCode) opFRem() {
+	b.writeU1(OP_FREM)
 }
 
 func (b *ByteCode) opI2F() {
