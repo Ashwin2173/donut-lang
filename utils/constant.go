@@ -101,8 +101,12 @@ const (
 	OP_LOAD_CONSTANT_W = 0x13
 	OP_INVOKE_STATIC   = 0xB8
 	OP_IADD            = 0x60
-	OP_FADD            = 0x62
 	OP_ISUB            = 0x64
+	OP_IMUL            = 0x68
+	OP_IDIV            = 0x6C
+	OP_FADD            = 0x62
 	OP_FSUB            = 0x66
+	OP_FMUL            = 0x6A
+	OP_FDIV            = 0x6E
 	OP_I2F             = 0x86
 )

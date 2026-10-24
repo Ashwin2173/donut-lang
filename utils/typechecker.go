@@ -11,18 +11,28 @@ type TypeChecker struct {
 	typeRegister map[string]TypeId
 }
 
-var binaryRules = map[Pair[TypeId, TypeId]]BinaryTypeResult{
-	{T_INT, T_INT}:     {T_INT, nil, nil},
-	{T_INT, T_FLOAT}:   {T_FLOAT, (*ByteCode).opI2F, nil},
-	{T_FLOAT, T_INT}:   {T_FLOAT, nil, (*ByteCode).opI2F},
-	{T_FLOAT, T_FLOAT}: {T_FLOAT, nil, nil},
-}
+var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
+	{T_INT, PLUS, T_INT}:  {T_INT, (*ByteCode).opIAdd, nil, nil},
+	{T_INT, MINUS, T_INT}: {T_INT, (*ByteCode).opISub, nil, nil},
+	{T_INT, STAR, T_INT}:  {T_INT, (*ByteCode).opIMul, nil, nil},
+	{T_INT, SLASH, T_INT}: {T_INT, (*ByteCode).opIDiv, nil, nil},
 
-var EXPR_OPERATION_TABLE = map[Pair[TypeId, TokenType]]func(*ByteCode){
-	{T_INT, PLUS}:    (*ByteCode).opIAdd,
-	{T_INT, MINUS}:   (*ByteCode).opISub,
-	{T_FLOAT, PLUS}:  (*ByteCode).opFAdd,
-	{T_FLOAT, MINUS}: (*ByteCode).opFSub,
+	{T_INT, PLUS, T_FLOAT}:  {T_FLOAT, (*ByteCode).opFAdd, (*ByteCode).opI2F, nil},
+	{T_INT, MINUS, T_FLOAT}: {T_FLOAT, (*ByteCode).opFSub, (*ByteCode).opI2F, nil},
+	{T_INT, STAR, T_FLOAT}:  {T_FLOAT, (*ByteCode).opFMul, (*ByteCode).opI2F, nil},
+	{T_INT, SLASH, T_FLOAT}: {T_FLOAT, (*ByteCode).opFDiv, (*ByteCode).opI2F, nil},
+
+	{T_FLOAT, PLUS, T_FLOAT}:  {T_FLOAT, (*ByteCode).opFAdd, nil, nil},
+	{T_FLOAT, MINUS, T_FLOAT}: {T_FLOAT, (*ByteCode).opFSub, nil, nil},
+	{T_FLOAT, STAR, T_FLOAT}:  {T_FLOAT, (*ByteCode).opFMul, nil, nil},
+	{T_FLOAT, SLASH, T_FLOAT}: {T_FLOAT, (*ByteCode).opFDiv, nil, nil},
+
+	{T_FLOAT, PLUS, T_INT}:  {T_FLOAT, (*ByteCode).opFAdd, nil, (*ByteCode).opI2F},
+	{T_FLOAT, MINUS, T_INT}: {T_FLOAT, (*ByteCode).opFSub, nil, (*ByteCode).opI2F},
+	{T_FLOAT, STAR, T_INT}:  {T_FLOAT, (*ByteCode).opFMul, nil, (*ByteCode).opI2F},
+	{T_FLOAT, SLASH, T_INT}: {T_FLOAT, (*ByteCode).opFDiv, nil, (*ByteCode).opI2F},
+
+	{T_STRING, PLUS, T_STRING}: {T_STRING, nil, nil, nil},
 }
 
 func NewTypeChecker(fileName string, program Program) *TypeChecker {
@@ -97,16 +107,10 @@ func (t *TypeChecker) handleBinaryExpression(expr *BinaryExpression) (TypeId, er
 		return T_UNKNOWN, err
 	}
 	var exists bool
-	pair := Pair[TypeId, TypeId]{left, right}
-	expr.typeInfo, exists = binaryRules[pair]
+	key := BinaryTypeKey{left, expr.binaryType, right}
+	expr.typeInfo, exists = binaryRules[key]
 	if !exists {
 		return T_UNKNOWN, t.fail("Invalid Binary Expression", expr.line)
-	}
-	opKey := Pair[TypeId, TokenType]{expr.typeInfo.result, expr.binaryType}
-	expr.resolvedOpType, exists = EXPR_OPERATION_TABLE[opKey]
-	if !exists {
-		// this should be unreachable when all the rules are in place.
-		panic(fmt.Sprintf("Missing binary operation implementation for %v", opKey))
 	}
 	return expr.typeInfo.result, nil
 }

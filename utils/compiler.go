@@ -113,7 +113,7 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 			bc.opReturn()
 		case *PrintStatement:
 			bc.dump(c.compileExpression(stmt.expression))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(F)V")) // console.log(<string>) method; todo: unhardcode this
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(I)V")) // console.log(<string>) method; todo: unhardcode this
 		case *ExpressionStatement:
 			c.compileExpression(stmt.expression)
 		default:
@@ -158,6 +158,6 @@ func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) 
 	if expr.typeInfo.rightTo != nil {
 		expr.typeInfo.rightTo(&bc)
 	}
-	expr.resolvedOpType(&bc)
+	expr.typeInfo.operationType(&bc)
 	return bc
 }

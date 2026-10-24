@@ -67,12 +67,28 @@ func (b *ByteCode) opISub() {
 	b.writeU1(OP_ISUB)
 }
 
+func (b *ByteCode) opIMul() {
+	b.writeU1(OP_IMUL)
+}
+
+func (b *ByteCode) opIDiv() {
+	b.writeU1(OP_IDIV)
+}
+
 func (b *ByteCode) opFAdd() {
 	b.writeU1(OP_FADD)
 }
 
 func (b *ByteCode) opFSub() {
 	b.writeU1(OP_FSUB)
+}
+
+func (b *ByteCode) opFMul() {
+	b.writeU1(OP_FMUL)
+}
+
+func (b *ByteCode) opFDiv() {
+	b.writeU1(OP_FDIV)
 }
 
 func (b *ByteCode) opI2F() {
