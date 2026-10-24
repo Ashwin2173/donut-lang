@@ -1,5 +1,4 @@
 function main() {
-    print 10 % 3;
-    print 1 + 1;
+    print "Ash" + "win";
     return 0;
 }

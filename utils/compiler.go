@@ -113,7 +113,7 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 			bc.opReturn()
 		case *PrintStatement:
 			bc.dump(c.compileExpression(stmt.expression))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(I)V")) // console.log(<string>) method; todo: unhardcode this
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(Ljava/lang/String;)V")) // console.log(<string>) method; todo: unhardcode this
 		case *ExpressionStatement:
 			c.compileExpression(stmt.expression)
 		default:
@@ -151,13 +151,45 @@ func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 
 func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.left)
-	if expr.typeInfo.leftTo != nil {
-		expr.typeInfo.leftTo(&bc)
+	if expr.typeInfo.leftTo != BOP_NONE {
+		bc.dump(c.compileExpressionNode(expr.typeInfo.leftTo))
 	}
 	bc.dump(c.compileExpression(expr.right))
-	if expr.typeInfo.rightTo != nil {
-		expr.typeInfo.rightTo(&bc)
+	if expr.typeInfo.rightTo != BOP_NONE {
+		bc.dump(c.compileExpressionNode(expr.typeInfo.rightTo))
 	}
-	expr.typeInfo.operationType(&bc)
+	bc.dump(c.compileExpressionNode(expr.typeInfo.operationType))
 	return bc
+}
+
+func (c *Compiler) compileExpressionNode(opType BinOpTypeId) (bc ByteCode) {
+	switch opType {
+	case BOP_IADD:
+		bc.opIAdd()
+	case BOP_ISUB:
+		bc.opISub()
+	case BOP_IMUL:
+		bc.opIMul()
+	case BOP_IDIV:
+		bc.opIDiv()
+	case BOP_IREM:
+		bc.opIRem()
+	case BOP_FADD:
+		bc.opFAdd()
+	case BOP_FSUB:
+		bc.opFSub()
+	case BOP_FMUL:
+		bc.opFMul()
+	case BOP_FDIV:
+		bc.opFDiv()
+	case BOP_FREM:
+		bc.opFRem()
+	case BOP_I2F:
+		bc.opI2F()
+	case BOP_S_PLUS_S:
+		panic("todo;")
+	default:
+		panic(fmt.Sprintf("Unhandled opType: %d", opType))
+	}
+	return
 }

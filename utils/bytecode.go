@@ -59,6 +59,13 @@ func (b *ByteCode) opInvokeStatic(index uint16) {
 	b.writeU2(index)
 }
 
+func (b *ByteCode) opInvokeDynamic(index uint16) {
+	b.writeU1(OP_INVOKE_DYNAMIC)
+	b.writeU2(index)
+	b.writeU1(0)
+	b.writeU1(0)
+}
+
 func (b *ByteCode) opIAdd() {
 	b.writeU1(OP_IADD)
 }

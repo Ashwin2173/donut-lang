@@ -53,13 +53,19 @@ type ConstantMethodRef struct {
 	nameAndTypeIndex uint16
 }
 
-func (c ConstantUtf8) isConstant()        {}
-func (c ConstantClass) isConstant()       {}
-func (c ConstantFloat) isConstant()       {}
-func (c ConstantString) isConstant()      {}
-func (c ConstantInteger) isConstant()     {}
-func (c ConstantMethodRef) isConstant()   {}
-func (c ConstantNameAndType) isConstant() {}
+type ConstantInvokeDynamic struct {
+	bootstrapMethodAttrIndex uint16
+	nameAndTypeIndex         uint16
+}
+
+func (c ConstantUtf8) isConstant()          {}
+func (c ConstantClass) isConstant()         {}
+func (c ConstantFloat) isConstant()         {}
+func (c ConstantString) isConstant()        {}
+func (c ConstantInteger) isConstant()       {}
+func (c ConstantMethodRef) isConstant()     {}
+func (c ConstantNameAndType) isConstant()   {}
+func (c ConstantInvokeDynamic) isConstant() {}
 
 func (cp *ConstantPool) AddUtf8(value string) (index uint16) {
 	newConstant := ConstantUtf8{
@@ -165,6 +171,23 @@ func (cp *ConstantPool) AddMethodRef(class, name, descriptor string) (index uint
 	if !exists {
 		cp.bc.writeU1(0xA)
 		cp.bc.writeU2(classIndex)
+		cp.bc.writeU2(nameAndTypeIndex)
+		index = uint16(len(cp.constantPool)) + 1
+		cp.constantPool[newConstant] = index
+	}
+	return
+}
+
+func (cp *ConstantPool) AddInvokeDynamic(bootstrapMethodAttrIndex uint16, name, descriptor string) (index uint16) {
+	nameAndTypeIndex := cp.AddNameAndType(name, descriptor)
+	newConstant := ConstantInvokeDynamic{
+		bootstrapMethodAttrIndex: bootstrapMethodAttrIndex,
+		nameAndTypeIndex:         nameAndTypeIndex,
+	}
+	index, exists := cp.constantPool[newConstant]
+	if !exists {
+		cp.bc.writeU1(0x12)
+		cp.bc.writeU2(bootstrapMethodAttrIndex)
 		cp.bc.writeU2(nameAndTypeIndex)
 		index = uint16(len(cp.constantPool)) + 1
 		cp.constantPool[newConstant] = index

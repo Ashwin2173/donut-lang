@@ -12,6 +12,7 @@ const (
 
 type TypeId int32
 type TokenType int
+type BinOpTypeId int
 type StatementType int
 
 const (
@@ -89,6 +90,7 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 
 var GROUP_NAMES = TOKEN_GRAMMAR.SubexpNames()
 
+// primary types
 const (
 	T_UNKNOWN TypeId = iota
 	T_INT     TypeId = iota
@@ -97,11 +99,30 @@ const (
 	T_BOOLEAN TypeId = iota
 )
 
+// expression operation
+const (
+	BOP_NONE BinOpTypeId = iota
+	BOP_IADD BinOpTypeId = iota
+	BOP_ISUB BinOpTypeId = iota
+	BOP_IMUL BinOpTypeId = iota
+	BOP_IDIV BinOpTypeId = iota
+	BOP_IREM BinOpTypeId = iota
+	BOP_FADD BinOpTypeId = iota
+	BOP_FSUB BinOpTypeId = iota
+	BOP_FMUL BinOpTypeId = iota
+	BOP_FDIV BinOpTypeId = iota
+	BOP_FREM BinOpTypeId = iota
+	BOP_I2F  BinOpTypeId = iota
+
+	BOP_S_PLUS_S BinOpTypeId = iota
+)
+
 const (
 	OP_RETURN          = 0xB1
 	OP_LOAD_CONSTANT   = 0x12
 	OP_LOAD_CONSTANT_W = 0x13
 	OP_INVOKE_STATIC   = 0xB8
+	OP_INVOKE_DYNAMIC  = 0xBA
 	OP_IADD            = 0x60
 	OP_ISUB            = 0x64
 	OP_IMUL            = 0x68

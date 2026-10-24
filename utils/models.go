@@ -104,7 +104,6 @@ type BinaryTypeKey struct {
 }
 
 type BinaryTypeValue struct {
-	result          TypeId
-	operationType   func(*ByteCode)
-	leftTo, rightTo func(*ByteCode)
+	result                         TypeId
+	operationType, leftTo, rightTo BinOpTypeId
 }
