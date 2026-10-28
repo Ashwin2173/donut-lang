@@ -7,7 +7,7 @@ import (
 
 const MAGIC uint32 = 0xCAFEBABE
 const MAJOR uint16 = 0
-const MINOR uint16 = 62
+const MINOR uint16 = 50
 
 type Compiler struct {
 	fileName  string
@@ -47,7 +47,7 @@ func (c *Compiler) Compile() error {
 	programByteCode := c.compileProgram(typeChecker.program)
 	c.bc.writeU2(c.cp.length() + 1)
 	c.bc.dump(c.cp.bc)
-	fmt.Println(c.cp.constantPool)
+	// fmt.Println(c.cp.constantPool)
 	c.bc.dump(programByteCode)
 	return err
 }
@@ -113,7 +113,7 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 			bc.opReturn()
 		case *PrintStatement:
 			bc.dump(c.compileExpression(stmt.expression))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", "(Ljava/lang/String;)V")) // console.log(<string>) method; todo: unhardcode this
+			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", stmt.resolvedArgs))
 		case *ExpressionStatement:
 			c.compileExpression(stmt.expression)
 		default:
@@ -186,10 +186,56 @@ func (c *Compiler) compileExpressionNode(opType BinOpTypeId) (bc ByteCode) {
 		bc.opFRem()
 	case BOP_I2F:
 		bc.opI2F()
-	case BOP_S_PLUS_S:
-		panic("todo;")
+	case BOP_IAND:
+		bc.opIAnd()
+	case BOP_IOR:
+		bc.opIOr()
+	case BOP_ICMP_LT:
+		c.compileComparison(&bc, OP_IF_ICMPLT, false)
+	case BOP_ICMP_GT:
+		c.compileComparison(&bc, OP_IF_ICMPGT, false)
+	case BOP_ICMP_LE:
+		c.compileComparison(&bc, OP_IF_ICMPLE, false)
+	case BOP_ICMP_GE:
+		c.compileComparison(&bc, OP_IF_ICMPGE, false)
+	case BOP_ICMP_EQ:
+		c.compileComparison(&bc, OP_IF_ICMPEQ, false)
+	case BOP_ICMP_NE:
+		c.compileComparison(&bc, OP_IF_ICMPNE, false)
+	case BOP_FCMP_LT:
+		c.compileComparison(&bc, OP_IFLT, true)
+	case BOP_FCMP_GT:
+		c.compileComparison(&bc, OP_IFGT, true)
+	case BOP_FCMP_LE:
+		c.compileComparison(&bc, OP_IFLE, true)
+	case BOP_FCMP_GE:
+		c.compileComparison(&bc, OP_IFGE, true)
+	case BOP_FCMP_EQ:
+		c.compileComparison(&bc, OP_IFEQ, true)
+	case BOP_FCMP_NE:
+		c.compileComparison(&bc, OP_IFNE, true)
+	case BOP_S_CONCAT:
+		bc.opInvokeVirtual(c.cp.AddMethodRef("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;"))
+	case BOP_S_EQ:
+		bc.opInvokeVirtual(c.cp.AddMethodRef("java/lang/String", "equals", "(Ljava/lang/Object;)Z"))
+	case BOP_S_NE:
+		bc.opInvokeVirtual(c.cp.AddMethodRef("java/lang/String", "equals", "(Ljava/lang/Object;)Z"))
+		bc.opIconst1()
+		bc.opIXor()
 	default:
 		panic(fmt.Sprintf("Unhandled opType: %d", opType))
 	}
 	return
+}
+
+func (c *Compiler) compileComparison(bc *ByteCode, cmpOpcode byte, isFloat bool) {
+	if isFloat {
+		bc.opFcmpl()
+	}
+	trueJump := bc.writeJumpPlaceHolder(cmpOpcode)
+	bc.opIconst0()
+	endJump := bc.writeJumpPlaceHolder(OP_GOTO)
+	bc.patchJump(trueJump)
+	bc.opIconst1()
+	bc.patchJump(endJump)
 }

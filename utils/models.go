@@ -38,8 +38,9 @@ type ReturnStatement struct {
 
 type PrintStatement struct {
 	// temp
-	expression Expression
-	line       uint
+	expression   Expression
+	resolvedArgs string
+	line         uint
 }
 
 func (BlockStatement) isStatement()      {}

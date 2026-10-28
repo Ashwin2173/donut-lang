@@ -102,25 +102,68 @@ const (
 // expression operation
 const (
 	BOP_NONE BinOpTypeId = iota
+
 	BOP_IADD BinOpTypeId = iota
 	BOP_ISUB BinOpTypeId = iota
 	BOP_IMUL BinOpTypeId = iota
 	BOP_IDIV BinOpTypeId = iota
 	BOP_IREM BinOpTypeId = iota
+
 	BOP_FADD BinOpTypeId = iota
 	BOP_FSUB BinOpTypeId = iota
 	BOP_FMUL BinOpTypeId = iota
 	BOP_FDIV BinOpTypeId = iota
 	BOP_FREM BinOpTypeId = iota
-	BOP_I2F  BinOpTypeId = iota
 
-	BOP_S_PLUS_S BinOpTypeId = iota
+	BOP_I2F BinOpTypeId = iota
+
+	BOP_ICMP_EQ BinOpTypeId = iota
+	BOP_ICMP_NE BinOpTypeId = iota
+	BOP_ICMP_LT BinOpTypeId = iota
+	BOP_ICMP_LE BinOpTypeId = iota
+	BOP_ICMP_GT BinOpTypeId = iota
+	BOP_ICMP_GE BinOpTypeId = iota
+
+	BOP_FCMP_EQ BinOpTypeId = iota
+	BOP_FCMP_NE BinOpTypeId = iota
+	BOP_FCMP_LT BinOpTypeId = iota
+	BOP_FCMP_LE BinOpTypeId = iota
+	BOP_FCMP_GT BinOpTypeId = iota
+	BOP_FCMP_GE BinOpTypeId = iota
+
+	BOP_IAND BinOpTypeId = iota
+	BOP_IOR  BinOpTypeId = iota
+
+	BOP_S_CONCAT BinOpTypeId = iota
+	BOP_S_EQ     BinOpTypeId = iota
+	BOP_S_NE     BinOpTypeId = iota
 )
 
 const (
-	OP_RETURN          = 0xB1
+	OP_ICONST_0        = 0x03
+	OP_ICONST_1        = 0x04
 	OP_LOAD_CONSTANT   = 0x12
 	OP_LOAD_CONSTANT_W = 0x13
+	OP_IAND            = 0x7E
+	OP_IOR             = 0x80
+	OP_IXOR            = 0x82
+	OP_I2F             = 0x86
+	OP_FCMPL           = 0x95
+	OP_IFEQ            = 0x99
+	OP_IFNE            = 0x9A
+	OP_IFLT            = 0x98
+	OP_IFGE            = 0x9C
+	OP_IFGT            = 0x9D
+	OP_IFLE            = 0x9E
+	OP_IF_ICMPEQ       = 0x9F
+	OP_IF_ICMPNE       = 0xA0
+	OP_IF_ICMPLT       = 0xA1
+	OP_IF_ICMPGE       = 0xA2
+	OP_IF_ICMPGT       = 0xA3
+	OP_IF_ICMPLE       = 0xA4
+	OP_GOTO            = 0xA7
+	OP_RETURN          = 0xB1
+	OP_INVOKE_VIRTUAL  = 0xb6
 	OP_INVOKE_STATIC   = 0xB8
 	OP_INVOKE_DYNAMIC  = 0xBA
 	OP_IADD            = 0x60
@@ -133,5 +176,4 @@ const (
 	OP_FMUL            = 0x6A
 	OP_FDIV            = 0x6E
 	OP_FREM            = 0x72
-	OP_I2F             = 0x86
 )

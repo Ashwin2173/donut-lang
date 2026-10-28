@@ -13,7 +13,7 @@ type Parser struct {
 
 func NewParser(fileName, source string) *Parser {
 	tokens := Tokenize(source)
-	fmt.Println("Tokens:", tokens)
+	// fmt.Println("Tokens:", tokens)
 	return &Parser{
 		fileName: fileName,
 		tokens:   NewGenerator(tokens),

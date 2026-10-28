@@ -38,6 +38,19 @@ func (b *ByteCode) dumpRaw(bytes []byte) {
 	b.byteCode = append(b.byteCode, bytes...)
 }
 
+func (b *ByteCode) writeJumpPlaceHolder(opcode byte) (pos int) {
+	b.writeU1(opcode)
+	pos = len(b.byteCode)
+	b.writeU1(0)
+	b.writeU1(0)
+	return
+}
+
+func (b *ByteCode) patchJump(pos int) {
+	offset := int16(len(b.byteCode) - (pos - 1))
+	binary.BigEndian.PutUint16(b.byteCode[pos:], uint16(offset))
+}
+
 // opcode functions
 
 func (b *ByteCode) opReturn() {
@@ -108,4 +121,33 @@ func (b *ByteCode) opFRem() {
 
 func (b *ByteCode) opI2F() {
 	b.writeU1(OP_I2F)
+}
+
+func (b *ByteCode) opIconst0() {
+	b.writeU1(OP_ICONST_0)
+}
+
+func (b *ByteCode) opIconst1() {
+	b.writeU1(OP_ICONST_1)
+}
+
+func (b *ByteCode) opFcmpl() {
+	b.writeU1(OP_FCMPL)
+}
+
+func (b *ByteCode) opIAnd() {
+	b.writeU1(OP_IAND)
+}
+
+func (b *ByteCode) opIOr() {
+	b.writeU1(OP_IOR)
+}
+
+func (b *ByteCode) opIXor() {
+	b.writeU1(OP_IXOR)
+}
+
+func (b *ByteCode) opInvokeVirtual(index uint16) {
+	b.writeU1(OP_INVOKE_VIRTUAL)
+	b.writeU2(index)
 }
