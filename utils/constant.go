@@ -181,7 +181,7 @@ const (
 	OP_BIPUSH          = 0x10
 	OP_ISTORE_0        = 0x3B
 	OP_ISTORE_1        = 0x3C
-	OP_ISTORE_2        = 0x61
+	OP_ISTORE_2        = 0x3D
 	OP_ISTORE_3        = 0x3E
 	OP_ISTORE          = 0x36
 	OP_ILOAD_0         = 0x1A
