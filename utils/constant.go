@@ -51,6 +51,7 @@ const (
 	GREATER_EQUALS TokenType = iota
 	LESSER         TokenType = iota
 	GREATER        TokenType = iota
+	EQUAL          TokenType = iota
 	NEWLINE        TokenType = iota
 	K_EOF          TokenType = iota
 )
@@ -85,6 +86,7 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<GREATER_EQUALS>>=)`,
 	`(?P<LESSER><)`,
 	`(?P<GREATER>>)`,
+	`(?P<EQUAL>=)`,
 	`(?P<NEWLINE>\n)`,
 }, "|"))
 
@@ -176,4 +178,36 @@ const (
 	OP_FMUL            = 0x6A
 	OP_FDIV            = 0x6E
 	OP_FREM            = 0x72
+	OP_BIPUSH          = 0x10
+	OP_ISTORE_0        = 0x3B
+	OP_ISTORE_1        = 0x3C
+	OP_ISTORE_2        = 0x61
+	OP_ISTORE_3        = 0x3E
+	OP_ISTORE          = 0x36
+	OP_ILOAD_0         = 0x1A
+	OP_ILOAD_1         = 0x1B
+	OP_ILOAD_2         = 0x1C
+	OP_ILOAD_3         = 0x1D
+	OP_ILOAD           = 0x15
+	OP_FSTORE_0        = 0x43
+	OP_FSTORE_1        = 0x44
+	OP_FSTORE_2        = 0x45
+	OP_FSTORE_3        = 0x46
+	OP_FSTORE          = 0x38
+	OP_FLOAD_0         = 0x22
+	OP_FLOAD_1         = 0x23
+	OP_FLOAD_2         = 0x24
+	OP_FLOAD_3         = 0x25
+	OP_FLOAD           = 0x17
+	OP_ASTORE_0        = 0x4B
+	OP_ASTORE_1        = 0x4C
+	OP_ASTORE_2        = 0x4D
+	OP_ASTORE_3        = 0x4E
+	OP_ASTORE          = 0x3A
+	OP_ALOAD_0         = 0x2A
+	OP_ALOAD_1         = 0x2B
+	OP_ALOAD_2         = 0x2C
+	OP_ALOAD_3         = 0x2D
+	OP_ALOAD           = 0x19
+	OP_WIDE            = 0xC4
 )

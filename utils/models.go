@@ -24,6 +24,7 @@ type FunctionStatement struct {
 	name      string
 	arguments []Identifier
 	body      BlockStatement
+	maxLocals int
 }
 
 type BlockStatement struct {
@@ -52,7 +53,14 @@ func (ExpressionStatement) isStatement() {}
 type NullLiteral struct{}
 
 type Identifier struct {
-	name string
+	name     string
+	line     uint
+	variable *Variable
+}
+
+type Variable struct {
+	varType TypeId
+	index   int
 }
 
 type IntegerLiteral struct {
@@ -84,14 +92,17 @@ type BinaryExpression struct {
 	typeInfo   BinaryTypeValue
 }
 
-func (Identifier) isExpression()       {}
-func (NullLiteral) isExpression()      {}
-func (FloatLiteral) isExpression()     {}
-func (StringLiteral) isExpression()    {}
-func (BooleanLiteral) isExpression()   {}
-func (IntegerLiteral) isExpression()   {}
-func (UnaryExpression) isExpression()  {}
-func (BinaryExpression) isExpression() {}
+type AssignmentExpression BinaryExpression
+
+func (Identifier) isExpression()           {}
+func (NullLiteral) isExpression()          {}
+func (FloatLiteral) isExpression()         {}
+func (StringLiteral) isExpression()        {}
+func (BooleanLiteral) isExpression()       {}
+func (IntegerLiteral) isExpression()       {}
+func (UnaryExpression) isExpression()      {}
+func (BinaryExpression) isExpression()     {}
+func (AssignmentExpression) isExpression() {}
 
 type Pair[L any, R any] struct {
 	left  L

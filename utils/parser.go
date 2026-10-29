@@ -169,7 +169,25 @@ func (p *Parser) scanExpressionStatement() (*ExpressionStatement, error) {
 }
 
 func (p *Parser) scanExpression() (Expression, error) {
-	return p.scanLogicalOr()
+	return p.scanAssignment()
+}
+
+func (p *Parser) scanAssignment() (Expression, error) {
+	expr, err := p.makeBinary(p.scanLogicalOr, EQUAL)
+	if err != nil {
+		return nil, err
+	}
+	binExpr, ok := expr.(*BinaryExpression)
+	if ok && binExpr.binaryType == EQUAL {
+		switch binExpr.left.(type) {
+		case *Identifier:
+			assignExpr := AssignmentExpression(*binExpr)
+			return &assignExpr, nil
+		default:
+			return nil, p.fail("Expected Identifier on left side of Assignment")
+		}
+	}
+	return expr, nil
 }
 
 func (p *Parser) scanLogicalOr() (Expression, error) {
@@ -237,7 +255,7 @@ func (p *Parser) scanPrimary() (Expression, error) {
 		}
 		return &BooleanLiteral{value: value}, nil
 	case IDENTIFIER:
-		return &Identifier{name: token.Raw}, nil
+		return &Identifier{name: token.Raw, line: token.Line}, nil
 	}
 	return nil, p.fail("Invalid Syntax")
 }

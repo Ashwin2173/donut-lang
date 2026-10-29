@@ -86,16 +86,17 @@ func (c *Compiler) compileFunction(function FunctionStatement) (fbc ByteCode) {
 
 	// code attr
 	fbc.writeU2(c.cp.AddUtf8("Code"))
-	codeAttr := c.compileCodeAttr(function.body)
+	codeAttr := c.compileCodeAttr(function)
 	fbc.writeU4(uint32(codeAttr.length()))
 	fbc.dump(codeAttr)
 
 	return
 }
 
-func (c *Compiler) compileCodeAttr(body BlockStatement) (bc ByteCode) {
-	bc.writeU2(256) // max stack size; todo: unhardcode this.
-	bc.writeU2(1)   //max locals; todo: unhardcode this.
+func (c *Compiler) compileCodeAttr(function FunctionStatement) (bc ByteCode) {
+	body := function.body
+	bc.writeU2(256)                        // max stack size; todo: unhardcode this.
+	bc.writeU2(uint16(function.maxLocals)) //max locals; todo: unhardcode this.
 
 	stmtByteCode := c.compileStatement(body.body)
 	bc.writeU4(uint32(stmtByteCode.length()))
@@ -115,7 +116,7 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 			bc.dump(c.compileExpression(stmt.expression))
 			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", stmt.resolvedArgs))
 		case *ExpressionStatement:
-			c.compileExpression(stmt.expression)
+			bc.dump(c.compileExpression(stmt.expression))
 		default:
 			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
 		}
@@ -125,12 +126,13 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 
 func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 	switch expr := expr.(type) {
+	case *BinaryExpression:
+		bc.dump(c.compileBinaryExpression(*expr))
+	case *AssignmentExpression:
+		bc.dump(c.compileAssignmentExpression(*expr))
 	case *StringLiteral:
 		stringIndex := c.cp.AddString(expr.value)
 		bc.opLoadConstant(stringIndex)
-	case *IntegerLiteral:
-		intIndex := c.cp.AddInteger(int32(expr.value))
-		bc.opLoadConstant(intIndex)
 	case *FloatLiteral:
 		floatIndex := c.cp.AddFloat(float32(expr.value))
 		bc.opLoadConstant(floatIndex)
@@ -141,10 +143,43 @@ func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 		}
 		intIndex := c.cp.AddInteger(value)
 		bc.opLoadConstant(intIndex)
-	case *BinaryExpression:
-		bc.dump(c.compileBinaryExpression(*expr))
+	case *IntegerLiteral:
+		number := int32(expr.value)
+		if number >= -128 && number < 128 {
+			bc.opBipush(byte(int8(number)))
+		} else {
+			intIndex := c.cp.AddInteger(int32(expr.value))
+			bc.opLoadConstant(intIndex)
+		}
+	case *Identifier:
+		switch expr.variable.varType {
+		case T_INT, T_BOOLEAN:
+			bc.opIload(uint16(expr.variable.index))
+		case T_FLOAT:
+			bc.opFload(uint16(expr.variable.index))
+		default:
+			bc.opAload(uint16(expr.variable.index))
+		}
 	default:
 		panic(fmt.Sprintf("Unhandled expression type: %T", expr))
+	}
+	return
+}
+
+func (c *Compiler) compileAssignmentExpression(expr AssignmentExpression) (bc ByteCode) {
+	bc.dump(c.compileExpression(expr.right))
+	switch expr := expr.left.(type) {
+	case *Identifier:
+		switch expr.variable.varType {
+		case T_INT, T_BOOLEAN:
+			bc.opIstore(uint16(expr.variable.index))
+		case T_FLOAT:
+			bc.opFstore(uint16(expr.variable.index))
+		default:
+			bc.opAstore(uint16(expr.variable.index))
+		}
+	default:
+		panic(fmt.Sprintf("Unhandled Assignment type: %T", expr))
 	}
 	return
 }

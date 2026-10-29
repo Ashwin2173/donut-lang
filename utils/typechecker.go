@@ -5,10 +5,11 @@ import (
 )
 
 type TypeChecker struct {
-	fileName     string
-	program      Program
-	functions    map[string][]string
-	typeRegister map[string]TypeId
+	fileName      string
+	program       Program
+	functions     map[string][]string
+	variableStack map[string]Variable // todo: convert this to a stack which will holder the scoped variables.
+	typeRegister  map[string]TypeId
 }
 
 var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
@@ -90,8 +91,10 @@ func NewTypeChecker(fileName string, program Program) *TypeChecker {
 }
 
 func (t *TypeChecker) resolve() error {
-	for _, fnStmt := range t.program.functions {
+	for i, fnStmt := range t.program.functions {
+		t.variableStack = make(map[string]Variable)
 		err := t.handleFnBodyStatement(fnStmt.body)
+		t.program.functions[i].maxLocals = len(t.variableStack)
 		if err != nil {
 			return err
 		}
@@ -144,8 +147,40 @@ func (t *TypeChecker) handleExpression(expr Expression) (TypeId, error) {
 		return T_BOOLEAN, nil
 	case *BinaryExpression:
 		return t.handleBinaryExpression(expr)
+	case *AssignmentExpression:
+		return t.handleAssignmentExpression(expr)
+	case *Identifier:
+		variable, exists := t.variableStack[expr.name]
+		if !exists {
+			return T_UNKNOWN, t.fail(
+				fmt.Sprintf("Undefined variable: %s", expr.name),
+				expr.line,
+			)
+		}
+		expr.variable = &variable
+		return variable.varType, nil
+	default:
+		panic(fmt.Sprintf("Unhandled Expression Type: %T", expr))
 	}
-	return T_UNKNOWN, nil
+}
+
+func (t *TypeChecker) handleAssignmentExpression(expr *AssignmentExpression) (TypeId, error) {
+	right, err := t.handleExpression(expr.right)
+	if err != nil {
+		return T_UNKNOWN, err
+	}
+	switch left := expr.left.(type) {
+	case *Identifier:
+		variable := Variable{
+			varType: right,
+			index:   len(t.variableStack),
+		}
+		left.variable = &variable
+		t.variableStack[left.name] = variable
+	default:
+		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.left))
+	}
+	return right, nil
 }
 
 func (t *TypeChecker) handleBinaryExpression(expr *BinaryExpression) (TypeId, error) {

@@ -57,6 +57,131 @@ func (b *ByteCode) opReturn() {
 	b.writeU1(OP_RETURN)
 }
 
+func (b *ByteCode) opBipush(value byte) {
+	b.writeU1(OP_BIPUSH)
+	b.writeU1(value)
+}
+
+func (b *ByteCode) opIstore(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_ISTORE_0)
+	case index == 1:
+		b.writeU1(OP_ISTORE_1)
+	case index == 2:
+		b.writeU1(OP_ISTORE_2)
+	case index == 3:
+		b.writeU1(OP_ISTORE_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_ISTORE)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_ISTORE)
+		b.writeU2(index)
+	}
+}
+
+func (b *ByteCode) opIload(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_ILOAD_0)
+	case index == 1:
+		b.writeU1(OP_ILOAD_1)
+	case index == 2:
+		b.writeU1(OP_ILOAD_2)
+	case index == 3:
+		b.writeU1(OP_ILOAD_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_ILOAD)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_ILOAD)
+		b.writeU2(index)
+	}
+}
+
+func (b *ByteCode) opFstore(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_FSTORE_0)
+	case index == 1:
+		b.writeU1(OP_FSTORE_1)
+	case index == 2:
+		b.writeU1(OP_FSTORE_2)
+	case index == 3:
+		b.writeU1(OP_FSTORE_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_FSTORE)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_FSTORE)
+		b.writeU2(index)
+	}
+}
+
+func (b *ByteCode) opFload(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_FLOAD_0)
+	case index == 1:
+		b.writeU1(OP_FLOAD_1)
+	case index == 2:
+		b.writeU1(OP_FLOAD_2)
+	case index == 3:
+		b.writeU1(OP_FLOAD_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_FLOAD)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_FLOAD)
+		b.writeU2(index)
+	}
+}
+
+func (b *ByteCode) opAstore(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_ASTORE_0)
+	case index == 1:
+		b.writeU1(OP_ASTORE_1)
+	case index == 2:
+		b.writeU1(OP_ASTORE_2)
+	case index == 3:
+		b.writeU1(OP_ASTORE_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_ASTORE)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_ASTORE)
+		b.writeU2(index)
+	}
+}
+
+func (b *ByteCode) opAload(index uint16) {
+	switch {
+	case index == 0:
+		b.writeU1(OP_ALOAD_0)
+	case index == 1:
+		b.writeU1(OP_ALOAD_1)
+	case index == 2:
+		b.writeU1(OP_ALOAD_2)
+	case index == 3:
+		b.writeU1(OP_ALOAD_3)
+	case index >= 4 && index <= 255:
+		b.writeU1(OP_ALOAD)
+		b.writeU1(byte(index))
+	default:
+		b.writeU1(OP_WIDE)
+		b.writeU1(OP_ALOAD)
+		b.writeU2(index)
+	}
+}
+
 func (b *ByteCode) opLoadConstant(index uint16) {
 	if index <= 255 {
 		b.writeU1(OP_LOAD_CONSTANT)
