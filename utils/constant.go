@@ -153,7 +153,7 @@ const (
 	OP_FCMPL           = 0x95
 	OP_IFEQ            = 0x99
 	OP_IFNE            = 0x9A
-	OP_IFLT            = 0x98
+	OP_IFLT            = 0x9B
 	OP_IFGE            = 0x9C
 	OP_IFGT            = 0x9D
 	OP_IFLE            = 0x9E

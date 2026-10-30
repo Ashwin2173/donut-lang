@@ -94,7 +94,7 @@ func (t *TypeChecker) resolve() error {
 	for i, fnStmt := range t.program.functions {
 		t.variableStack = make(map[string]Variable)
 		err := t.handleFnBodyStatement(fnStmt.body)
-		t.program.functions[i].maxLocals = len(t.variableStack)
+		t.program.functions[i].maxLocals = len(t.variableStack) + 1 // todo: unhardcode this
 		if err != nil {
 			return err
 		}

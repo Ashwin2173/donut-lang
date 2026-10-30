@@ -248,14 +248,24 @@ func (p *Parser) scanPrimary() (Expression, error) {
 		return &FloatLiteral{value: value}, nil
 	case STRING:
 		return &StringLiteral{value: token.Raw[1 : len(token.Raw)-1]}, nil
+	case IDENTIFIER:
+		return &Identifier{name: token.Raw, line: token.Line}, nil
+	case OPEN_PARAM:
+		expr, err := p.scanExpression()
+		if err != nil {
+			return nil, err
+		}
+		token, isEnd := p.tokens.next()
+		if isEnd || token.Type != CLOSE_PARAM {
+			return nil, p.fail("Unclosed parentheses; Expected ) to complete the expression")
+		}
+		return expr, nil
 	case K_TRUE, K_FALSE:
 		value := false
 		if token.Type == K_TRUE {
 			value = true
 		}
 		return &BooleanLiteral{value: value}, nil
-	case IDENTIFIER:
-		return &Identifier{name: token.Raw, line: token.Line}, nil
 	}
 	return nil, p.fail("Invalid Syntax")
 }
