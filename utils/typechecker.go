@@ -75,6 +75,12 @@ var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
 	{T_BOOLEAN, BANG_EQUAL, T_BOOLEAN}:  {T_BOOLEAN, BOP_ICMP_NE, BOP_NONE, BOP_NONE},
 }
 
+var unaryRules = map[UnaryTypeKey]ExpOpTypeId{
+	{MINUS, T_INT}:     UOP_INEG,
+	{MINUS, T_FLOAT}:   UOP_FNEG,
+	{K_NOT, T_BOOLEAN}: UOP_NOT,
+}
+
 func NewTypeChecker(fileName string, program Program) *TypeChecker {
 	defaultType := map[string]TypeId{
 		"int":              T_INT,
@@ -145,6 +151,8 @@ func (t *TypeChecker) handleExpression(expr Expression) (TypeId, error) {
 		return T_STRING, nil
 	case *BooleanLiteral:
 		return T_BOOLEAN, nil
+	case *UnaryExpression:
+		return t.handleUnaryExpression(expr)
 	case *BinaryExpression:
 		return t.handleBinaryExpression(expr)
 	case *AssignmentExpression:
@@ -180,6 +188,20 @@ func (t *TypeChecker) handleAssignmentExpression(expr *AssignmentExpression) (Ty
 	default:
 		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.left))
 	}
+	return right, nil
+}
+
+func (t *TypeChecker) handleUnaryExpression(expr *UnaryExpression) (TypeId, error) {
+	right, err := t.handleExpression(expr.value)
+	if err != nil {
+		return T_UNKNOWN, err
+	}
+	key := UnaryTypeKey{expr.unaryType, right}
+	result, exists := unaryRules[key]
+	if !exists {
+		return T_UNKNOWN, t.fail("Invalid Unary Expression", expr.line)
+	}
+	expr.typeInfo = result
 	return right, nil
 }
 

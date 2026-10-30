@@ -268,6 +268,19 @@ func (b *ByteCode) opIOr() {
 	b.writeU1(OP_IOR)
 }
 
+func (b *ByteCode) opINeg() {
+	b.writeU1(OP_INEG)
+}
+
+func (b *ByteCode) opFNeg() {
+	b.writeU1(OP_FNEG)
+}
+
+func (b *ByteCode) opNot() {
+	b.writeU1(OP_ICONST_1)
+	b.writeU1(OP_IXOR)
+}
+
 func (b *ByteCode) opIXor() {
 	b.writeU1(OP_IXOR)
 }

@@ -12,7 +12,7 @@ const (
 
 type TypeId int32
 type TokenType int
-type BinOpTypeId int
+type ExpOpTypeId int
 type StatementType int
 
 const (
@@ -103,42 +103,46 @@ const (
 
 // expression operation
 const (
-	BOP_NONE BinOpTypeId = iota
+	UOP_INEG ExpOpTypeId = iota
+	UOP_FNEG ExpOpTypeId = iota
+	UOP_NOT  ExpOpTypeId = iota
 
-	BOP_IADD BinOpTypeId = iota
-	BOP_ISUB BinOpTypeId = iota
-	BOP_IMUL BinOpTypeId = iota
-	BOP_IDIV BinOpTypeId = iota
-	BOP_IREM BinOpTypeId = iota
+	BOP_NONE ExpOpTypeId = iota
 
-	BOP_FADD BinOpTypeId = iota
-	BOP_FSUB BinOpTypeId = iota
-	BOP_FMUL BinOpTypeId = iota
-	BOP_FDIV BinOpTypeId = iota
-	BOP_FREM BinOpTypeId = iota
+	BOP_IADD ExpOpTypeId = iota
+	BOP_ISUB ExpOpTypeId = iota
+	BOP_IMUL ExpOpTypeId = iota
+	BOP_IDIV ExpOpTypeId = iota
+	BOP_IREM ExpOpTypeId = iota
 
-	BOP_I2F BinOpTypeId = iota
+	BOP_FADD ExpOpTypeId = iota
+	BOP_FSUB ExpOpTypeId = iota
+	BOP_FMUL ExpOpTypeId = iota
+	BOP_FDIV ExpOpTypeId = iota
+	BOP_FREM ExpOpTypeId = iota
 
-	BOP_ICMP_EQ BinOpTypeId = iota
-	BOP_ICMP_NE BinOpTypeId = iota
-	BOP_ICMP_LT BinOpTypeId = iota
-	BOP_ICMP_LE BinOpTypeId = iota
-	BOP_ICMP_GT BinOpTypeId = iota
-	BOP_ICMP_GE BinOpTypeId = iota
+	BOP_I2F ExpOpTypeId = iota
 
-	BOP_FCMP_EQ BinOpTypeId = iota
-	BOP_FCMP_NE BinOpTypeId = iota
-	BOP_FCMP_LT BinOpTypeId = iota
-	BOP_FCMP_LE BinOpTypeId = iota
-	BOP_FCMP_GT BinOpTypeId = iota
-	BOP_FCMP_GE BinOpTypeId = iota
+	BOP_ICMP_EQ ExpOpTypeId = iota
+	BOP_ICMP_NE ExpOpTypeId = iota
+	BOP_ICMP_LT ExpOpTypeId = iota
+	BOP_ICMP_LE ExpOpTypeId = iota
+	BOP_ICMP_GT ExpOpTypeId = iota
+	BOP_ICMP_GE ExpOpTypeId = iota
 
-	BOP_IAND BinOpTypeId = iota
-	BOP_IOR  BinOpTypeId = iota
+	BOP_FCMP_EQ ExpOpTypeId = iota
+	BOP_FCMP_NE ExpOpTypeId = iota
+	BOP_FCMP_LT ExpOpTypeId = iota
+	BOP_FCMP_LE ExpOpTypeId = iota
+	BOP_FCMP_GT ExpOpTypeId = iota
+	BOP_FCMP_GE ExpOpTypeId = iota
 
-	BOP_S_CONCAT BinOpTypeId = iota
-	BOP_S_EQ     BinOpTypeId = iota
-	BOP_S_NE     BinOpTypeId = iota
+	BOP_IAND ExpOpTypeId = iota
+	BOP_IOR  ExpOpTypeId = iota
+
+	BOP_S_CONCAT ExpOpTypeId = iota
+	BOP_S_EQ     ExpOpTypeId = iota
+	BOP_S_NE     ExpOpTypeId = iota
 )
 
 const (
@@ -178,6 +182,8 @@ const (
 	OP_FMUL            = 0x6A
 	OP_FDIV            = 0x6E
 	OP_FREM            = 0x72
+	OP_FNEG            = 0x76
+	OP_INEG            = 0x74
 	OP_BIPUSH          = 0x10
 	OP_ISTORE_0        = 0x3B
 	OP_ISTORE_1        = 0x3C

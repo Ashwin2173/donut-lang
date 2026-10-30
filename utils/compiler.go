@@ -126,6 +126,8 @@ func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
 
 func (c *Compiler) compileExpression(expr Expression) (bc ByteCode) {
 	switch expr := expr.(type) {
+	case *UnaryExpression:
+		bc.dump(c.compileUnaryExpression(*expr))
 	case *BinaryExpression:
 		bc.dump(c.compileBinaryExpression(*expr))
 	case *AssignmentExpression:
@@ -184,6 +186,12 @@ func (c *Compiler) compileAssignmentExpression(expr AssignmentExpression) (bc By
 	return
 }
 
+func (c *Compiler) compileUnaryExpression(expr UnaryExpression) (bc ByteCode) {
+	bc = c.compileExpression(expr.value)
+	bc.dump(c.compileExpressionNode(expr.typeInfo))
+	return
+}
+
 func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.left)
 	if expr.typeInfo.leftTo != BOP_NONE {
@@ -197,7 +205,7 @@ func (c *Compiler) compileBinaryExpression(expr BinaryExpression) (bc ByteCode) 
 	return bc
 }
 
-func (c *Compiler) compileExpressionNode(opType BinOpTypeId) (bc ByteCode) {
+func (c *Compiler) compileExpressionNode(opType ExpOpTypeId) (bc ByteCode) {
 	switch opType {
 	case BOP_IADD:
 		bc.opIAdd()
@@ -225,6 +233,12 @@ func (c *Compiler) compileExpressionNode(opType BinOpTypeId) (bc ByteCode) {
 		bc.opIAnd()
 	case BOP_IOR:
 		bc.opIOr()
+	case UOP_INEG:
+		bc.opINeg()
+	case UOP_FNEG:
+		bc.opFNeg()
+	case UOP_NOT:
+		bc.opNot()
 	case BOP_ICMP_LT:
 		c.compileComparison(&bc, OP_IF_ICMPLT, false)
 	case BOP_ICMP_GT:

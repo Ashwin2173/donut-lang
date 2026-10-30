@@ -218,13 +218,14 @@ func (p *Parser) scanUnary() (Expression, error) {
 	token, isEnd := p.tokens.peek()
 	if !isEnd && (token.Type == MINUS || token.Type == K_NOT) {
 		p.tokens.next()
-		right, err := p.scanPostfix()
+		right, err := p.scanUnary()
 		if err != nil {
 			return nil, err
 		}
 		return &UnaryExpression{
 			unaryType: token.Type,
 			value:     right,
+			line:      token.Line,
 		}, nil
 	}
 	return p.scanPostfix()

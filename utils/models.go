@@ -82,6 +82,8 @@ type BooleanLiteral struct {
 type UnaryExpression struct {
 	unaryType TokenType
 	value     Expression
+	typeInfo  ExpOpTypeId
+	line      uint
 }
 
 type BinaryExpression struct {
@@ -109,6 +111,11 @@ type Pair[L any, R any] struct {
 	right R
 }
 
+type UnaryTypeKey struct {
+	operation TokenType
+	right     TypeId
+}
+
 type BinaryTypeKey struct {
 	left      TypeId
 	operation TokenType
@@ -117,5 +124,5 @@ type BinaryTypeKey struct {
 
 type BinaryTypeValue struct {
 	result                         TypeId
-	operationType, leftTo, rightTo BinOpTypeId
+	operationType, leftTo, rightTo ExpOpTypeId
 }
