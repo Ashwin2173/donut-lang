@@ -267,9 +267,9 @@ func (c *Compiler) compileComparison(bc *ByteCode, cmpOpcode byte, isFloat bool)
 	if isFloat {
 		bc.opFcmpl()
 	}
-	trueJump := bc.writeJumpPlaceHolder(cmpOpcode)
+	trueJump := bc.writeJumpPlaceholder(cmpOpcode)
 	bc.opIconst0()
-	endJump := bc.writeJumpPlaceHolder(OP_GOTO)
+	endJump := bc.writeJumpPlaceholder(OP_GOTO)
 	bc.patchJump(trueJump)
 	bc.opIconst1()
 	bc.patchJump(endJump)

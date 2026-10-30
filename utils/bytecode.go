@@ -38,7 +38,7 @@ func (b *ByteCode) dumpRaw(bytes []byte) {
 	b.byteCode = append(b.byteCode, bytes...)
 }
 
-func (b *ByteCode) writeJumpPlaceHolder(opcode byte) (pos int) {
+func (b *ByteCode) writeJumpPlaceholder(opcode byte) (pos int) {
 	b.writeU1(opcode)
 	pos = len(b.byteCode)
 	b.writeU1(0)

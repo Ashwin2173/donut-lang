@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	FILE_EXTENSION  = ".dt"
-	TAGET_EXTENSION = ".class"
+	FILE_EXTENSION   = ".dt"
+	TARGET_EXTENSION = ".class"
 )
 
 type TypeId int32
@@ -59,13 +59,13 @@ const (
 var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<COMMENT>//[^\n]*)`,
 	`(?P<KEYWORD_FUNCTION>\bfunction\b)`,
-	`(?P<KETWORD_RETURN>\breturn\b)`,
-	`(?P<KETWORD_PRINT>\bprint\b)`,
-	`(?P<KETWORD_TRUE>\btrue\b)`,
-	`(?P<KETWORD_FALSE>\bfalse\b)`,
-	`(?P<KETWORD_AND>\band\b)`,
-	`(?P<KETWORD_OR>\bor\b)`,
-	`(?P<KETWORD_NOT>\bnot\b)`,
+	`(?P<KEYWORD_RETURN>\breturn\b)`,
+	`(?P<KEYWORD_PRINT>\bprint\b)`,
+	`(?P<KEYWORD_TRUE>\btrue\b)`,
+	`(?P<KEYWORD_FALSE>\bfalse\b)`,
+	`(?P<KEYWORD_AND>\band\b)`,
+	`(?P<KEYWORD_OR>\bor\b)`,
+	`(?P<KEYWORD_NOT>\bnot\b)`,
 	`(?P<SEMI_COLON>\;)`,
 	`(?P<OPEN_BRACE>\{)`,
 	`(?P<CLOSE_BRACE>\})`,
