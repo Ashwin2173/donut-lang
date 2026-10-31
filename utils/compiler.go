@@ -98,7 +98,7 @@ func (c *Compiler) compileCodeAttr(function FunctionStatement) (bc ByteCode) {
 	bc.writeU2(256)                        // max stack size; todo: unhardcode this.
 	bc.writeU2(uint16(function.maxLocals)) //max locals; todo: unhardcode this.
 
-	stmtByteCode := c.compileStatement(body.body)
+	stmtByteCode := c.compileStatement(&body)
 	bc.writeU4(uint32(stmtByteCode.length()))
 	bc.dump(stmtByteCode)
 
@@ -107,20 +107,35 @@ func (c *Compiler) compileCodeAttr(function FunctionStatement) (bc ByteCode) {
 	return
 }
 
-func (c *Compiler) compileStatement(stmts []Statement) (bc ByteCode) {
-	for _, stmt := range stmts {
-		switch stmt := stmt.(type) {
-		case *ReturnStatement:
-			bc.opReturn()
-		case *PrintStatement:
-			bc.dump(c.compileExpression(stmt.expression))
-			bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", stmt.resolvedArgs))
-		case *ExpressionStatement:
-			bc.dump(c.compileExpression(stmt.expression))
-		default:
-			panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
+func (c *Compiler) compileStatement(stmt Statement) (bc ByteCode) {
+	switch stmt := stmt.(type) {
+	case *ReturnStatement:
+		bc.opReturn()
+	case *ExpressionStatement:
+		bc.dump(c.compileExpression(stmt.expression))
+	case *WhileStatement:
+		bc.dump(c.compileWhileStmt(*stmt))
+	case *BlockStatement:
+		for _, s := range stmt.body {
+			bc.dump(c.compileStatement(s))
 		}
+	case *PrintStatement:
+		bc.dump(c.compileExpression(stmt.expression))
+		bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", stmt.resolvedArgs))
+	default:
+		panic(fmt.Sprintf("Unhandled statement type: %T", stmt))
 	}
+	return
+}
+
+func (c *Compiler) compileWhileStmt(stmt WhileStatement) (bc ByteCode) {
+	start := len(bc.byteCode)
+	bc.dump(c.compileExpression(stmt.expression))
+	exitJump := bc.writeJumpPlaceholder(OP_IFEQ)
+	bc.dump(c.compileStatement(stmt.body))
+	loopJump := bc.writeJumpPlaceholder(OP_GOTO)
+	bc.patchJumpTo(loopJump, start)
+	bc.patchJump(exitJump)
 	return
 }
 

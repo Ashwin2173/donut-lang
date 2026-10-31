@@ -1,7 +1,6 @@
 function main() {
-    val1 = 1;
-    print(-val1);
-    val2 = false;
-    print(not val2);
+    while true {
+        print("Ashwin");
+    }
     return;
 }

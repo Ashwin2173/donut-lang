@@ -25,6 +25,7 @@ const (
 	COMMENT        TokenType = iota
 	K_FUNCTION     TokenType = iota
 	K_RETURN       TokenType = iota
+	K_WHILE        TokenType = iota
 	K_PRINT        TokenType = iota
 	K_TRUE         TokenType = iota
 	K_FALSE        TokenType = iota
@@ -60,6 +61,7 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<COMMENT>//[^\n]*)`,
 	`(?P<KEYWORD_FUNCTION>\bfunction\b)`,
 	`(?P<KEYWORD_RETURN>\breturn\b)`,
+	`(?P<KEYWORD_WHILE>\bwhile\b)`,
 	`(?P<KEYWORD_PRINT>\bprint\b)`,
 	`(?P<KEYWORD_TRUE>\btrue\b)`,
 	`(?P<KEYWORD_FALSE>\bfalse\b)`,

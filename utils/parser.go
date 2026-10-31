@@ -99,10 +99,35 @@ func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
 	switch token.Type {
 	case K_RETURN:
 		return p.scanReturnStatement()
+	case K_WHILE:
+		return p.scanWhileStatement()
+	case OPEN_BRACE:
+		return p.scanBlockStatement()
 	case K_PRINT: // temp code
 		return p.scanPrintStatement()
 	}
 	return p.scanExpressionStatement()
+}
+
+func (p *Parser) scanWhileStatement() (*WhileStatement, error) {
+	token, _ := p.tokens.next()
+	expr, err := p.scanExpression()
+	if err != nil {
+		return nil, err
+	}
+	token, isEnd := p.tokens.peek()
+	if isEnd {
+		return nil, p.fail("Required a statement for the while loop, but reached end of file")
+	}
+	bodystmt, err := p.scanLocalStatement(token)
+	if err != nil {
+		return nil, err
+	}
+	return &WhileStatement{
+		expression: expr,
+		body:       bodystmt,
+		line:       token.Line,
+	}, nil
 }
 
 func (p *Parser) scanPrintStatement() (*PrintStatement, error) {

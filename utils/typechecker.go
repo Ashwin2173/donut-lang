@@ -99,7 +99,7 @@ func NewTypeChecker(fileName string, program Program) *TypeChecker {
 func (t *TypeChecker) resolve() error {
 	for i, fnStmt := range t.program.functions {
 		t.variableStack = make(map[string]Variable)
-		err := t.handleFnBodyStatement(fnStmt.body)
+		err := t.handleStatement(&fnStmt.body)
 		t.program.functions[i].maxLocals = len(t.variableStack) + 1 // todo: unhardcode this
 		if err != nil {
 			return err
@@ -108,37 +108,66 @@ func (t *TypeChecker) resolve() error {
 	return nil
 }
 
-func (t *TypeChecker) handleFnBodyStatement(body BlockStatement) error {
-	for _, stmt := range body.body {
-		switch stmt := stmt.(type) {
-		case *ExpressionStatement:
-			_, err := t.handleExpression(stmt.expression)
-			if err != nil {
-				return err
-			}
-		case *PrintStatement:
-			// test
-			t, err := t.handleExpression(stmt.expression)
-			if err != nil {
-				return err
-			}
-			switch t {
-			case T_INT:
-				stmt.resolvedArgs = "(I)V"
-			case T_FLOAT:
-				stmt.resolvedArgs = "(F)V"
-			case T_BOOLEAN:
-				stmt.resolvedArgs = "(Z)V"
-			case T_STRING:
-				stmt.resolvedArgs = "(Ljava/lang/String;)V"
-			default:
-				stmt.resolvedArgs = "(Ljava/lang/Object;)V"
-			}
+func (t *TypeChecker) handleStatement(stmt Statement) error {
+	switch stmt := stmt.(type) {
+	case *ExpressionStatement:
+		_, err := t.handleExpression(stmt.expression)
+		if err != nil {
+			return err
+		}
+	case *BlockStatement:
+		err := t.handleBlockstmt(*stmt)
+		if err != nil {
+			return err
+		}
+	case *WhileStatement:
+		err := t.handleWhileStmt(*stmt)
+		if err != nil {
+			return err
+		}
+	case *PrintStatement:
+		// test
+		t, err := t.handleExpression(stmt.expression)
+		if err != nil {
+			return err
+		}
+		switch t {
+		case T_INT:
+			stmt.resolvedArgs = "(I)V"
+		case T_FLOAT:
+			stmt.resolvedArgs = "(F)V"
+		case T_BOOLEAN:
+			stmt.resolvedArgs = "(Z)V"
+		case T_STRING:
+			stmt.resolvedArgs = "(Ljava/lang/String;)V"
 		default:
-			fmt.Printf("DEV-INFO: Skipped %T Type for typechecking\n", stmt)
+			stmt.resolvedArgs = "(Ljava/lang/Object;)V"
+		}
+	default:
+		fmt.Printf("DEV-INFO: Skipped %T Type for typechecking\n", stmt)
+	}
+	return nil
+}
+
+func (t *TypeChecker) handleBlockstmt(stmt BlockStatement) error {
+	for _, stmt := range stmt.body {
+		err := t.handleStatement(stmt)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func (t *TypeChecker) handleWhileStmt(stmt WhileStatement) error {
+	exprType, err := t.handleExpression(stmt.expression)
+	if err != nil {
+		return err
+	}
+	if exprType != T_BOOLEAN {
+		return t.fail("Required a boolean expression for the while loop", stmt.line)
+	}
+	return t.handleStatement(stmt.body)
 }
 
 func (t *TypeChecker) handleExpression(expr Expression) (TypeId, error) {
@@ -179,9 +208,12 @@ func (t *TypeChecker) handleAssignmentExpression(expr *AssignmentExpression) (Ty
 	}
 	switch left := expr.left.(type) {
 	case *Identifier:
-		variable := Variable{
-			varType: right,
-			index:   len(t.variableStack),
+		variable, exists := t.variableStack[left.name]
+		if !exists {
+			variable = Variable{
+				varType: right,
+				index:   len(t.variableStack),
+			}
 		}
 		left.variable = &variable
 		t.variableStack[left.name] = variable

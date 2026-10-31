@@ -37,6 +37,12 @@ type ReturnStatement struct {
 	line       uint
 }
 
+type WhileStatement struct {
+	expression Expression
+	body       Statement
+	line       uint
+}
+
 type PrintStatement struct {
 	// temp
 	expression   Expression
@@ -45,6 +51,7 @@ type PrintStatement struct {
 }
 
 func (BlockStatement) isStatement()      {}
+func (WhileStatement) isStatement()      {}
 func (PrintStatement) isStatement()      {}
 func (ReturnStatement) isStatement()     {}
 func (FunctionStatement) isStatement()   {}
