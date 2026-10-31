@@ -52,7 +52,7 @@ func (b *ByteCode) patchJump(pos int) {
 }
 
 func (b *ByteCode) patchJumpTo(pos int, target int) {
-	offset := int16(target - pos - 1)
+	offset := int16(target - pos + 1)
 	binary.BigEndian.PutUint16(b.byteCode[pos:], uint16(offset))
 }
 
