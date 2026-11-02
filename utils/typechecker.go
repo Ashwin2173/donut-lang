@@ -125,6 +125,11 @@ func (t *TypeChecker) handleStatement(stmt Statement) error {
 		if err != nil {
 			return err
 		}
+	case *IfStatement:
+		err := t.handleIfStmt(*stmt)
+		if err != nil {
+			return err
+		}
 	case *PrintStatement:
 		// test
 		t, err := t.handleExpression(stmt.expression)
@@ -159,13 +164,28 @@ func (t *TypeChecker) handleBlockstmt(stmt BlockStatement) error {
 	return nil
 }
 
-func (t *TypeChecker) handleWhileStmt(stmt WhileStatement) error {
-	exprType, err := t.handleExpression(stmt.expression)
+func (t *TypeChecker) handleIfStmt(stmt IfStatement) error {
+	exprType, err := t.handleExpression(stmt.test)
 	if err != nil {
 		return err
 	}
 	if exprType != T_BOOLEAN {
-		return t.fail("Required a boolean expression for the while loop", stmt.line)
+		return t.fail("Required a boolean test expression for the if statement", stmt.line)
+	}
+	err = t.handleStatement(stmt.consequent)
+	if err != nil {
+		return nil
+	}
+	return t.handleStatement(stmt.alternate)
+}
+
+func (t *TypeChecker) handleWhileStmt(stmt WhileStatement) error {
+	exprType, err := t.handleExpression(stmt.test)
+	if err != nil {
+		return err
+	}
+	if exprType != T_BOOLEAN {
+		return t.fail("Required a boolean test expression for the while loop", stmt.line)
 	}
 	return t.handleStatement(stmt.body)
 }

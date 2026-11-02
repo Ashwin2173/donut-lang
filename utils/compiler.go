@@ -115,6 +115,8 @@ func (c *Compiler) compileStatement(stmt Statement) (bc ByteCode) {
 		bc.dump(c.compileExpression(stmt.expression))
 	case *WhileStatement:
 		bc.dump(c.compileWhileStmt(*stmt))
+	case *IfStatement:
+		bc.dump(c.compileIfStmt(*stmt))
 	case *BlockStatement:
 		for _, s := range stmt.body {
 			bc.dump(c.compileStatement(s))
@@ -128,9 +130,24 @@ func (c *Compiler) compileStatement(stmt Statement) (bc ByteCode) {
 	return
 }
 
+func (c *Compiler) compileIfStmt(stmt IfStatement) (bc ByteCode) {
+	bc.dump(c.compileExpression(stmt.test))
+	consequentPointer := bc.writeJumpPlaceholder(OP_IFEQ)
+	bc.dump(c.compileStatement(stmt.consequent))
+	if stmt.alternate != nil {
+		alternatePointer := bc.writeJumpPlaceholder(OP_GOTO)
+		bc.patchJump(consequentPointer)
+		bc.dump(c.compileStatement(stmt.alternate))
+		bc.patchJump(alternatePointer)
+	} else {
+		bc.patchJump(consequentPointer)
+	}
+	return
+}
+
 func (c *Compiler) compileWhileStmt(stmt WhileStatement) (bc ByteCode) {
 	start := len(bc.byteCode)
-	bc.dump(c.compileExpression(stmt.expression))
+	bc.dump(c.compileExpression(stmt.test))
 	exitJump := bc.writeJumpPlaceholder(OP_IFEQ)
 	bc.dump(c.compileStatement(stmt.body))
 	loopJump := bc.writeJumpPlaceholder(OP_GOTO)

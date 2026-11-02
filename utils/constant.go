@@ -27,6 +27,8 @@ const (
 	K_RETURN       TokenType = iota
 	K_WHILE        TokenType = iota
 	K_PRINT        TokenType = iota
+	K_IF           TokenType = iota
+	K_ELSE         TokenType = iota
 	K_TRUE         TokenType = iota
 	K_FALSE        TokenType = iota
 	K_AND          TokenType = iota
@@ -63,6 +65,8 @@ var TOKEN_GRAMMAR = regexp.MustCompile(strings.Join([]string{
 	`(?P<KEYWORD_RETURN>\breturn\b)`,
 	`(?P<KEYWORD_WHILE>\bwhile\b)`,
 	`(?P<KEYWORD_PRINT>\bprint\b)`,
+	`(?P<KEYWORD_IF>\bif\b)`,
+	`(?P<KEYWORD_ELSE>\belse\b)`,
 	`(?P<KEYWORD_TRUE>\btrue\b)`,
 	`(?P<KEYWORD_FALSE>\bfalse\b)`,
 	`(?P<KEYWORD_AND>\band\b)`,

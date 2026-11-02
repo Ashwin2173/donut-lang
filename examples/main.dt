@@ -1,7 +1,11 @@
 function main() {
     count = 0;
     while count <= 10 {
-        print(count);
+        if count % 2 == 0 {
+            print("Even");
+        } else {
+            print("Odd");
+        }
         count = count + 1;
     }
     return;

@@ -101,12 +101,49 @@ func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
 		return p.scanReturnStatement()
 	case K_WHILE:
 		return p.scanWhileStatement()
+	case K_IF:
+		return p.scanIfStatement()
 	case OPEN_BRACE:
 		return p.scanBlockStatement()
 	case K_PRINT: // temp code
 		return p.scanPrintStatement()
 	}
 	return p.scanExpressionStatement()
+}
+
+func (p *Parser) scanIfStatement() (*IfStatement, error) {
+	token, _ := p.tokens.next()
+	expr, err := p.scanExpression()
+	if err != nil {
+		return nil, err
+	}
+	token, isEnd := p.tokens.peek()
+	if isEnd {
+		return nil, p.fail("Required a statement for if stmt, but reached end of file")
+	}
+	consequent, err := p.scanLocalStatement(token)
+	if err != nil {
+		return nil, err
+	}
+	var alternate Statement
+	token, isEnd = p.tokens.peek()
+	if !isEnd && token.Type == K_ELSE {
+		p.tokens.next()
+		token, isEnd = p.tokens.peek()
+		if isEnd {
+			return nil, p.fail("Required a statement for else stmt, but reached end of file")
+		}
+		alternate, err = p.scanLocalStatement(token)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &IfStatement{
+		test:       expr,
+		consequent: consequent,
+		alternate:  alternate,
+		line:       token.Line,
+	}, nil
 }
 
 func (p *Parser) scanWhileStatement() (*WhileStatement, error) {
@@ -117,16 +154,16 @@ func (p *Parser) scanWhileStatement() (*WhileStatement, error) {
 	}
 	token, isEnd := p.tokens.peek()
 	if isEnd {
-		return nil, p.fail("Required a statement for the while loop, but reached end of file")
+		return nil, p.fail("Required a statement for while loop, but reached end of file")
 	}
 	bodystmt, err := p.scanLocalStatement(token)
 	if err != nil {
 		return nil, err
 	}
 	return &WhileStatement{
-		expression: expr,
-		body:       bodystmt,
-		line:       token.Line,
+		test: expr,
+		body: bodystmt,
+		line: token.Line,
 	}, nil
 }
 
