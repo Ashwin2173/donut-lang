@@ -1,11 +1,11 @@
-package utils
+package parser
 
 type Word struct {
-	Raw   string
-	Type  TokenType
-	Line  uint
-	Start uint
-	End   uint
+	Raw    string
+	Type   TokenType
+	Line   uint
+	Column uint
+	End    uint
 }
 
 type Statement interface{ isStatement() }
@@ -124,20 +124,4 @@ func (AssignmentExpression) isExpression() {}
 type Pair[L any, R any] struct {
 	left  L
 	right R
-}
-
-type UnaryTypeKey struct {
-	operation TokenType
-	right     TypeId
-}
-
-type BinaryTypeKey struct {
-	left      TypeId
-	operation TokenType
-	right     TypeId
-}
-
-type BinaryTypeValue struct {
-	result                         TypeId
-	operationType, leftTo, rightTo ExpOpTypeId
 }

@@ -1,9 +1,11 @@
-package utils
+package parser
 
 import (
 	"fmt"
 	"slices"
 	"strconv"
+
+	"donut/lang"
 )
 
 type Parser struct {
@@ -11,7 +13,7 @@ type Parser struct {
 	tokens   *Generator[Word]
 }
 
-func NewParser(fileName, source string) *Parser {
+func New(fileName, source string) *Parser {
 	tokens := Tokenize(source)
 	// fmt.Println("Tokens:", tokens)
 	return &Parser{
@@ -30,7 +32,7 @@ func (p *Parser) ParseProgram() (*Program, error) {
 		if isEnd {
 			break
 		}
-		if token.Type == K_FUNCTION {
+		if token.Type == k_function {
 			p.tokens.next()
 			function, err := p.scanFunctionDef()
 			if err != nil {
@@ -41,21 +43,30 @@ func (p *Parser) ParseProgram() (*Program, error) {
 			return nil, p.fail("Expected function definition in global scope")
 		}
 	}
-	return &Program{
+	return p.analyzeProgram(Program{
 		functions: functions,
-	}, nil
+	})
+}
+
+func (p *Parser) analyzeProgram(program Program) (*Program, error) {
+	analyzer := NewAnalyzer(p.fileName, program)
+	err := analyzer.Analyze()
+	if err != nil {
+		return nil, err
+	}
+	return &analyzer.program, nil
 }
 
 func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
-	name, err := p.expectToken(IDENTIFIER)
+	name, err := p.expectToken(t_identifier)
 	if err != nil {
 		return nil, p.fail("Expected a function name")
 	}
-	_, err = p.expectToken(OPEN_PARAM)
+	_, err = p.expectToken(t_openParen)
 	if err != nil {
 		return nil, p.fail("Expected '(' after the function name")
 	}
-	_, err = p.expectToken(CLOSE_PARAM)
+	_, err = p.expectToken(t_closeParen)
 	if err != nil {
 		return nil, p.fail("Expected ')'")
 	}
@@ -70,7 +81,7 @@ func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
 }
 
 func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
-	openBrace, err := p.expectToken(OPEN_BRACE)
+	openBrace, err := p.expectToken(t_openBrace)
 	if err != nil {
 		return nil, p.fail("Expected '{' at the start of block")
 	}
@@ -80,7 +91,7 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 		if isEnd {
 			return nil, p.fail("Reached End of File while parsing block; Expected '}'")
 		}
-		if token.Type == CLOSE_BRACE {
+		if token.Type == t_closeBrace {
 			p.tokens.next()
 			return &BlockStatement{
 				body: body,
@@ -97,15 +108,15 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 
 func (p *Parser) scanLocalStatement(token Word) (Statement, error) {
 	switch token.Type {
-	case K_RETURN:
+	case k_return:
 		return p.scanReturnStatement()
-	case K_WHILE:
+	case k_while:
 		return p.scanWhileStatement()
-	case K_IF:
+	case k_if:
 		return p.scanIfStatement()
-	case OPEN_BRACE:
+	case t_openBrace:
 		return p.scanBlockStatement()
-	case K_PRINT: // temp code
+	case k_print: // temp code
 		return p.scanPrintStatement()
 	}
 	return p.scanExpressionStatement()
@@ -127,7 +138,7 @@ func (p *Parser) scanIfStatement() (*IfStatement, error) {
 	}
 	var alternate Statement
 	token, isEnd = p.tokens.peek()
-	if !isEnd && token.Type == K_ELSE {
+	if !isEnd && token.Type == k_else {
 		p.tokens.next()
 		token, isEnd = p.tokens.peek()
 		if isEnd {
@@ -175,7 +186,7 @@ func (p *Parser) scanPrintStatement() (*PrintStatement, error) {
 		return nil, p.fail("Expected an expression or semicolon after return")
 	}
 	var expression Expression
-	if token.Type == SEMICOLON {
+	if token.Type == t_semicolon {
 		p.tokens.next()
 		expression = NullLiteral{}
 	} else {
@@ -198,7 +209,7 @@ func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {
 		return nil, p.fail("Expected an expression or semicolon after return")
 	}
 	var expression Expression
-	if token.Type == SEMICOLON {
+	if token.Type == t_semicolon {
 		p.tokens.next()
 		expression = NullLiteral{}
 	} else {
@@ -221,7 +232,7 @@ func (p *Parser) scanExpressionStatement() (*ExpressionStatement, error) {
 		return nil, err
 	}
 	token, isEnd := p.tokens.next()
-	if isEnd || token.Type != SEMICOLON {
+	if isEnd || token.Type != t_semicolon {
 		return nil, p.fail("Expected Semicolon after expression")
 	}
 	return &ExpressionStatement{
@@ -235,12 +246,12 @@ func (p *Parser) scanExpression() (Expression, error) {
 }
 
 func (p *Parser) scanAssignment() (Expression, error) {
-	expr, err := p.makeBinary(p.scanLogicalOr, EQUAL)
+	expr, err := p.makeBinary(p.scanLogicalOr, t_equal)
 	if err != nil {
 		return nil, err
 	}
 	binExpr, ok := expr.(*BinaryExpression)
-	if ok && binExpr.binaryType == EQUAL {
+	if ok && binExpr.binaryType == t_equal {
 		switch binExpr.left.(type) {
 		case *Identifier:
 			assignExpr := AssignmentExpression(*binExpr)
@@ -253,32 +264,32 @@ func (p *Parser) scanAssignment() (Expression, error) {
 }
 
 func (p *Parser) scanLogicalOr() (Expression, error) {
-	return p.makeBinary(p.scanLogicalAnd, K_OR)
+	return p.makeBinary(p.scanLogicalAnd, k_or)
 }
 
 func (p *Parser) scanLogicalAnd() (Expression, error) {
-	return p.makeBinary(p.scanEquality, K_AND)
+	return p.makeBinary(p.scanEquality, k_and)
 }
 
 func (p *Parser) scanEquality() (Expression, error) {
-	return p.makeBinary(p.scanComparison, EQUAL_EQUAL, BANG_EQUAL)
+	return p.makeBinary(p.scanComparison, t_equalEqual, t_bangEqual)
 }
 
 func (p *Parser) scanComparison() (Expression, error) {
-	return p.makeBinary(p.scanTerm, LESSER, LESSER_EQUALS, GREATER, GREATER_EQUALS)
+	return p.makeBinary(p.scanTerm, t_lesser, t_lesserEquals, t_greater, t_greaterEquals)
 }
 
 func (p *Parser) scanTerm() (Expression, error) {
-	return p.makeBinary(p.scanFactor, PLUS, MINUS)
+	return p.makeBinary(p.scanFactor, t_plus, t_minus)
 }
 
 func (p *Parser) scanFactor() (Expression, error) {
-	return p.makeBinary(p.scanUnary, STAR, SLASH, MOD)
+	return p.makeBinary(p.scanUnary, t_star, t_slash, t_mod)
 }
 
 func (p *Parser) scanUnary() (Expression, error) {
 	token, isEnd := p.tokens.peek()
-	if !isEnd && (token.Type == MINUS || token.Type == K_NOT) {
+	if !isEnd && (token.Type == t_minus || token.Type == k_not) {
 		p.tokens.next()
 		right, err := p.scanUnary()
 		if err != nil {
@@ -303,29 +314,29 @@ func (p *Parser) scanPrimary() (Expression, error) {
 		return nil, p.fail("Expected expression but reached end of file")
 	}
 	switch token.Type {
-	case INTEGER:
+	case t_integerLit:
 		value, _ := strconv.Atoi(token.Raw)
 		return &IntegerLiteral{value: int64(value)}, nil
-	case FLOAT:
+	case t_floatLit:
 		value, _ := strconv.ParseFloat(token.Raw, 64)
 		return &FloatLiteral{value: value}, nil
-	case STRING:
+	case t_stringLit:
 		return &StringLiteral{value: token.Raw[1 : len(token.Raw)-1]}, nil
-	case IDENTIFIER:
+	case t_identifier:
 		return &Identifier{name: token.Raw, line: token.Line}, nil
-	case OPEN_PARAM:
+	case t_openParen:
 		expr, err := p.scanExpression()
 		if err != nil {
 			return nil, err
 		}
 		token, isEnd := p.tokens.next()
-		if isEnd || token.Type != CLOSE_PARAM {
+		if isEnd || token.Type != t_closeParen {
 			return nil, p.fail("Unclosed parentheses; Expected ) to complete the expression")
 		}
 		return expr, nil
-	case K_TRUE, K_FALSE:
+	case k_true, k_false:
 		value := false
-		if token.Type == K_TRUE {
+		if token.Type == k_true {
 			value = true
 		}
 		return &BooleanLiteral{value: value}, nil
@@ -360,11 +371,11 @@ func (p *Parser) makeBinary(callNext func() (Expression, error), operators ...To
 func (p *Parser) expectToken(tokenType TokenType) (Word, error) {
 	token, isEnd := p.tokens.next()
 	if isEnd {
-		message := fmt.Sprintf("Expected %s but reached end of file", GROUP_NAMES[tokenType])
+		message := fmt.Sprintf("Expected %s but reached end of file", groupNames[tokenType])
 		return token, p.fail(message)
 	}
 	if token.Type != tokenType {
-		message := fmt.Sprintf("Expected %s but got %s", GROUP_NAMES[tokenType], GROUP_NAMES[token.Type])
+		message := fmt.Sprintf("Expected %s but got %s", groupNames[tokenType], groupNames[token.Type])
 		return token, p.fail(message)
 	}
 	return token, nil
@@ -372,10 +383,10 @@ func (p *Parser) expectToken(tokenType TokenType) (Word, error) {
 
 func (p *Parser) fail(message string) error {
 	token, _ := p.tokens.peek()
-	return error(CompileError{
+	return error(lang.CompileError{
 		Message:  message,
 		FileName: p.fileName,
 		Line:     token.Line,
-		Col:      token.Start,
+		Col:      token.Column,
 	})
 }

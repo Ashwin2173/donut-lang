@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"donut/utils"
+	"donut/lang"
 )
 
 func main() {
@@ -17,14 +17,14 @@ func main() {
 		fmt.Println("ERROR:", err)
 		printUsage(true)
 	}
-	compiler := utils.NewCompiler(args[1], string(file))
+	compiler := lang.NewCompiler(args[1], string(file))
 	err = compiler.Compile()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	// test write this will be udated.
-	err = os.WriteFile(args[1][:len(args[1])-3]+utils.TARGET_EXTENSION, compiler.GetByteCode(), 0644)
+	// test write this will be updated.
+	err = os.WriteFile(args[1][:len(args[1])-3]+lang.TARGET_EXTENSION, compiler.GetByteCode(), 0644)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

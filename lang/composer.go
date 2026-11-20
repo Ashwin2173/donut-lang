@@ -1,13 +1,15 @@
-package utils
+package lang
 
 import (
 	"fmt"
 	"path/filepath"
 )
 
-const MAGIC uint32 = 0xCAFEBABE
-const MAJOR uint16 = 0
-const MINOR uint16 = 50
+const (
+	magic = 0xCAFEBABE
+	major = 0
+	minor = 50
+)
 
 type Compiler struct {
 	fileName  string

@@ -1,12 +1,7 @@
 function main() {
-    count = 0;
-    while count <= 10 {
-        if count % 2 == 0 {
-            print("Even");
-        } else {
-            print("Odd");
-        }
-        count = count + 1;
+    variable := 1;
+    if variable {
+        print("Hello");
     }
     return;
 }

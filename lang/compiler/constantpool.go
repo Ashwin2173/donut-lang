@@ -1,4 +1,4 @@
-package utils
+package compiler
 
 import (
 	"encoding/binary"
@@ -21,6 +21,12 @@ func NewConstantPool() *ConstantPool {
 
 func (c *ConstantPool) length() uint16 {
 	return uint16(len(c.constantPool))
+}
+
+func (c *ConstantPool) GetByteCode() (bc ByteCode) {
+	bc.writeU2(c.length())
+	bc.dump(c.bc)
+	return
 }
 
 type ConstantUtf8 struct {
