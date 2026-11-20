@@ -2,7 +2,7 @@ package compiler
 
 const ( // todo: move this to a new file
 	sourceFile = "SourceFile"
-	code = "Code"
+	code       = "Code"
 )
 
 const (

@@ -8,51 +8,48 @@ import (
 
 // primary types
 const (
-	typeUnknown TypeId = iota
-	typeInt
-	typeFloat
-	typeString
-	typeBoolean
+	TypeUnknown TypeId = iota
+	TypeInt
+	TypeFloat
+	TypeString
+	TypeBoolean
 )
 
 // expression operation
 const (
-	uop_ineg ExpOpTypeId = iota
-	uop_fneg
-	uop_not
-	bop_none
-	bop_iadd
-	bop_isub
-	bop_imul
-	bop_idiv
-	bop_irem
-	bop_fadd
-	bop_fsub
-	bop_fmul
-	bop_fdiv
-	bop_frem
-	bop_i2f
-	bop_icmp_eq
-	bop_icmp_ne
-	bop_icmp_lt
-	bop_icmp_le
-	bop_icmp_gt
-	bop_icmp_ge
-	bop_fcmp_eq
-	bop_fcmp_ne
-	bop_fcmp_lt
-	bop_fcmp_le
-	bop_fcmp_gt
-	bop_fcmp_ge
-	bop_iand
-	bop_ior
-	bop_s_concat
-	bop_s_eq
-	bop_s_ne
+	Uop_ineg ExpOpTypeId = iota
+	Uop_fneg
+	Uop_not
+	Bop_none
+	Bop_iadd
+	Bop_isub
+	Bop_imul
+	Bop_idiv
+	Bop_irem
+	Bop_fadd
+	Bop_fsub
+	Bop_fmul
+	Bop_fdiv
+	Bop_frem
+	Bop_i2f
+	Bop_icmp_eq
+	Bop_icmp_ne
+	Bop_icmp_lt
+	Bop_icmp_le
+	Bop_icmp_gt
+	Bop_icmp_ge
+	Bop_fcmp_eq
+	Bop_fcmp_ne
+	Bop_fcmp_lt
+	Bop_fcmp_le
+	Bop_fcmp_gt
+	Bop_fcmp_ge
+	Bop_iand
+	Bop_ior
+	Bop_s_concat
+	Bop_s_eq
+	Bop_s_ne
 )
-
-type TypeId int32
-type ExpOpTypeId int
 
 type UnaryTypeKey struct {
 	operation TokenType
@@ -67,69 +64,69 @@ type BinaryTypeKey struct {
 
 type BinaryTypeValue struct {
 	result        TypeId
-	operationType ExpOpTypeId
-	leftTo        ExpOpTypeId
-	rightTo       ExpOpTypeId
+	OperationType ExpOpTypeId
+	LeftTo        ExpOpTypeId
+	RightTo       ExpOpTypeId
 }
 
 var unaryRules = map[UnaryTypeKey]ExpOpTypeId{
-	{t_minus, typeInt}:   uop_ineg,
-	{t_minus, typeFloat}: uop_fneg,
-	{k_not, typeBoolean}: uop_not,
+	{t_minus, TypeInt}:   Uop_ineg,
+	{t_minus, TypeFloat}: Uop_fneg,
+	{k_not, TypeBoolean}: Uop_not,
 }
 
 var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
-	{typeInt, t_plus, typeInt}:               {typeInt, bop_iadd, bop_none, bop_none},
-	{typeInt, t_minus, typeInt}:              {typeInt, bop_isub, bop_none, bop_none},
-	{typeInt, t_star, typeInt}:               {typeInt, bop_imul, bop_none, bop_none},
-	{typeInt, t_slash, typeInt}:              {typeInt, bop_idiv, bop_none, bop_none},
-	{typeInt, t_mod, typeInt}:                {typeInt, bop_irem, bop_none, bop_none},
-	{typeInt, t_lesser, typeInt}:             {typeBoolean, bop_icmp_lt, bop_none, bop_none},
-	{typeInt, t_greater, typeInt}:            {typeBoolean, bop_icmp_gt, bop_none, bop_none},
-	{typeInt, t_lesserEquals, typeInt}:       {typeBoolean, bop_icmp_le, bop_none, bop_none},
-	{typeInt, t_greaterEquals, typeInt}:      {typeBoolean, bop_icmp_ge, bop_none, bop_none},
-	{typeInt, t_equalEqual, typeInt}:         {typeBoolean, bop_icmp_eq, bop_none, bop_none},
-	{typeInt, t_bangEqual, typeInt}:          {typeBoolean, bop_icmp_ne, bop_none, bop_none},
-	{typeInt, t_plus, typeFloat}:             {typeFloat, bop_fadd, bop_i2f, bop_none},
-	{typeInt, t_minus, typeFloat}:            {typeFloat, bop_fsub, bop_i2f, bop_none},
-	{typeInt, t_star, typeFloat}:             {typeFloat, bop_fmul, bop_i2f, bop_none},
-	{typeInt, t_slash, typeFloat}:            {typeFloat, bop_fdiv, bop_i2f, bop_none},
-	{typeInt, t_mod, typeFloat}:              {typeFloat, bop_frem, bop_i2f, bop_none},
-	{typeInt, t_lesser, typeFloat}:           {typeBoolean, bop_fcmp_lt, bop_i2f, bop_none},
-	{typeInt, t_greater, typeFloat}:          {typeBoolean, bop_fcmp_gt, bop_i2f, bop_none},
-	{typeInt, t_lesserEquals, typeFloat}:     {typeBoolean, bop_fcmp_le, bop_i2f, bop_none},
-	{typeInt, t_greaterEquals, typeFloat}:    {typeBoolean, bop_fcmp_ge, bop_i2f, bop_none},
-	{typeInt, t_equalEqual, typeFloat}:       {typeBoolean, bop_fcmp_eq, bop_i2f, bop_none},
-	{typeInt, t_bangEqual, typeFloat}:        {typeBoolean, bop_fcmp_ne, bop_i2f, bop_none},
-	{typeFloat, t_plus, typeFloat}:           {typeFloat, bop_fadd, bop_none, bop_none},
-	{typeFloat, t_minus, typeFloat}:          {typeFloat, bop_fsub, bop_none, bop_none},
-	{typeFloat, t_star, typeFloat}:           {typeFloat, bop_fmul, bop_none, bop_none},
-	{typeFloat, t_slash, typeFloat}:          {typeFloat, bop_fdiv, bop_none, bop_none},
-	{typeFloat, t_mod, typeFloat}:            {typeFloat, bop_frem, bop_none, bop_none},
-	{typeFloat, t_lesser, typeFloat}:         {typeBoolean, bop_fcmp_lt, bop_none, bop_none},
-	{typeFloat, t_greater, typeFloat}:        {typeBoolean, bop_fcmp_gt, bop_none, bop_none},
-	{typeFloat, t_lesserEquals, typeFloat}:   {typeBoolean, bop_fcmp_le, bop_none, bop_none},
-	{typeFloat, t_greaterEquals, typeFloat}:  {typeBoolean, bop_fcmp_ge, bop_none, bop_none},
-	{typeFloat, t_equalEqual, typeFloat}:     {typeBoolean, bop_fcmp_eq, bop_none, bop_none},
-	{typeFloat, t_bangEqual, typeFloat}:      {typeBoolean, bop_fcmp_ne, bop_none, bop_none},
-	{typeFloat, t_plus, typeInt}:             {typeFloat, bop_fadd, bop_none, bop_i2f},
-	{typeFloat, t_minus, typeInt}:            {typeFloat, bop_fsub, bop_none, bop_i2f},
-	{typeFloat, t_star, typeInt}:             {typeFloat, bop_fmul, bop_none, bop_i2f},
-	{typeFloat, t_slash, typeInt}:            {typeFloat, bop_fdiv, bop_none, bop_i2f},
-	{typeFloat, t_mod, typeInt}:              {typeFloat, bop_frem, bop_none, bop_i2f},
-	{typeFloat, t_lesser, typeInt}:           {typeBoolean, bop_fcmp_lt, bop_none, bop_i2f},
-	{typeFloat, t_greater, typeInt}:          {typeBoolean, bop_fcmp_gt, bop_none, bop_i2f},
-	{typeFloat, t_lesserEquals, typeInt}:     {typeBoolean, bop_fcmp_le, bop_none, bop_i2f},
-	{typeFloat, t_greaterEquals, typeInt}:    {typeBoolean, bop_fcmp_ge, bop_none, bop_i2f},
-	{typeFloat, t_equalEqual, typeInt}:       {typeBoolean, bop_fcmp_eq, bop_none, bop_i2f},
-	{typeFloat, t_bangEqual, typeInt}:        {typeBoolean, bop_fcmp_ne, bop_none, bop_i2f},
-	{typeString, t_plus, typeString}:         {typeString, bop_s_concat, bop_none, bop_none},
-	{typeString, t_equalEqual, typeString}:   {typeBoolean, bop_s_eq, bop_none, bop_none},
-	{typeString, t_bangEqual, typeString}:    {typeBoolean, bop_s_ne, bop_none, bop_none},
-	{typeBoolean, k_and, typeBoolean}:        {typeBoolean, bop_iand, bop_none, bop_none},
-	{typeBoolean, k_or, typeBoolean}:         {typeBoolean, bop_ior, bop_none, bop_none},
-	{typeBoolean, t_equalEqual, typeBoolean}: {typeBoolean, bop_icmp_eq, bop_none, bop_none},
-	{typeBoolean, t_bangEqual, typeBoolean}:  {typeBoolean, bop_icmp_ne, bop_none, bop_none},
+	{TypeInt, t_plus, TypeInt}:               {TypeInt, Bop_iadd, Bop_none, Bop_none},
+	{TypeInt, t_minus, TypeInt}:              {TypeInt, Bop_isub, Bop_none, Bop_none},
+	{TypeInt, t_star, TypeInt}:               {TypeInt, Bop_imul, Bop_none, Bop_none},
+	{TypeInt, t_slash, TypeInt}:              {TypeInt, Bop_idiv, Bop_none, Bop_none},
+	{TypeInt, t_mod, TypeInt}:                {TypeInt, Bop_irem, Bop_none, Bop_none},
+	{TypeInt, t_lesser, TypeInt}:             {TypeBoolean, Bop_icmp_lt, Bop_none, Bop_none},
+	{TypeInt, t_greater, TypeInt}:            {TypeBoolean, Bop_icmp_gt, Bop_none, Bop_none},
+	{TypeInt, t_lesserEquals, TypeInt}:       {TypeBoolean, Bop_icmp_le, Bop_none, Bop_none},
+	{TypeInt, t_greaterEquals, TypeInt}:      {TypeBoolean, Bop_icmp_ge, Bop_none, Bop_none},
+	{TypeInt, t_equalEqual, TypeInt}:         {TypeBoolean, Bop_icmp_eq, Bop_none, Bop_none},
+	{TypeInt, t_bangEqual, TypeInt}:          {TypeBoolean, Bop_icmp_ne, Bop_none, Bop_none},
+	{TypeInt, t_plus, TypeFloat}:             {TypeFloat, Bop_fadd, Bop_i2f, Bop_none},
+	{TypeInt, t_minus, TypeFloat}:            {TypeFloat, Bop_fsub, Bop_i2f, Bop_none},
+	{TypeInt, t_star, TypeFloat}:             {TypeFloat, Bop_fmul, Bop_i2f, Bop_none},
+	{TypeInt, t_slash, TypeFloat}:            {TypeFloat, Bop_fdiv, Bop_i2f, Bop_none},
+	{TypeInt, t_mod, TypeFloat}:              {TypeFloat, Bop_frem, Bop_i2f, Bop_none},
+	{TypeInt, t_lesser, TypeFloat}:           {TypeBoolean, Bop_fcmp_lt, Bop_i2f, Bop_none},
+	{TypeInt, t_greater, TypeFloat}:          {TypeBoolean, Bop_fcmp_gt, Bop_i2f, Bop_none},
+	{TypeInt, t_lesserEquals, TypeFloat}:     {TypeBoolean, Bop_fcmp_le, Bop_i2f, Bop_none},
+	{TypeInt, t_greaterEquals, TypeFloat}:    {TypeBoolean, Bop_fcmp_ge, Bop_i2f, Bop_none},
+	{TypeInt, t_equalEqual, TypeFloat}:       {TypeBoolean, Bop_fcmp_eq, Bop_i2f, Bop_none},
+	{TypeInt, t_bangEqual, TypeFloat}:        {TypeBoolean, Bop_fcmp_ne, Bop_i2f, Bop_none},
+	{TypeFloat, t_plus, TypeFloat}:           {TypeFloat, Bop_fadd, Bop_none, Bop_none},
+	{TypeFloat, t_minus, TypeFloat}:          {TypeFloat, Bop_fsub, Bop_none, Bop_none},
+	{TypeFloat, t_star, TypeFloat}:           {TypeFloat, Bop_fmul, Bop_none, Bop_none},
+	{TypeFloat, t_slash, TypeFloat}:          {TypeFloat, Bop_fdiv, Bop_none, Bop_none},
+	{TypeFloat, t_mod, TypeFloat}:            {TypeFloat, Bop_frem, Bop_none, Bop_none},
+	{TypeFloat, t_lesser, TypeFloat}:         {TypeBoolean, Bop_fcmp_lt, Bop_none, Bop_none},
+	{TypeFloat, t_greater, TypeFloat}:        {TypeBoolean, Bop_fcmp_gt, Bop_none, Bop_none},
+	{TypeFloat, t_lesserEquals, TypeFloat}:   {TypeBoolean, Bop_fcmp_le, Bop_none, Bop_none},
+	{TypeFloat, t_greaterEquals, TypeFloat}:  {TypeBoolean, Bop_fcmp_ge, Bop_none, Bop_none},
+	{TypeFloat, t_equalEqual, TypeFloat}:     {TypeBoolean, Bop_fcmp_eq, Bop_none, Bop_none},
+	{TypeFloat, t_bangEqual, TypeFloat}:      {TypeBoolean, Bop_fcmp_ne, Bop_none, Bop_none},
+	{TypeFloat, t_plus, TypeInt}:             {TypeFloat, Bop_fadd, Bop_none, Bop_i2f},
+	{TypeFloat, t_minus, TypeInt}:            {TypeFloat, Bop_fsub, Bop_none, Bop_i2f},
+	{TypeFloat, t_star, TypeInt}:             {TypeFloat, Bop_fmul, Bop_none, Bop_i2f},
+	{TypeFloat, t_slash, TypeInt}:            {TypeFloat, Bop_fdiv, Bop_none, Bop_i2f},
+	{TypeFloat, t_mod, TypeInt}:              {TypeFloat, Bop_frem, Bop_none, Bop_i2f},
+	{TypeFloat, t_lesser, TypeInt}:           {TypeBoolean, Bop_fcmp_lt, Bop_none, Bop_i2f},
+	{TypeFloat, t_greater, TypeInt}:          {TypeBoolean, Bop_fcmp_gt, Bop_none, Bop_i2f},
+	{TypeFloat, t_lesserEquals, TypeInt}:     {TypeBoolean, Bop_fcmp_le, Bop_none, Bop_i2f},
+	{TypeFloat, t_greaterEquals, TypeInt}:    {TypeBoolean, Bop_fcmp_ge, Bop_none, Bop_i2f},
+	{TypeFloat, t_equalEqual, TypeInt}:       {TypeBoolean, Bop_fcmp_eq, Bop_none, Bop_i2f},
+	{TypeFloat, t_bangEqual, TypeInt}:        {TypeBoolean, Bop_fcmp_ne, Bop_none, Bop_i2f},
+	{TypeString, t_plus, TypeString}:         {TypeString, Bop_s_concat, Bop_none, Bop_none},
+	{TypeString, t_equalEqual, TypeString}:   {TypeBoolean, Bop_s_eq, Bop_none, Bop_none},
+	{TypeString, t_bangEqual, TypeString}:    {TypeBoolean, Bop_s_ne, Bop_none, Bop_none},
+	{TypeBoolean, k_and, TypeBoolean}:        {TypeBoolean, Bop_iand, Bop_none, Bop_none},
+	{TypeBoolean, k_or, TypeBoolean}:         {TypeBoolean, Bop_ior, Bop_none, Bop_none},
+	{TypeBoolean, t_equalEqual, TypeBoolean}: {TypeBoolean, Bop_icmp_eq, Bop_none, Bop_none},
+	{TypeBoolean, t_bangEqual, TypeBoolean}:  {TypeBoolean, Bop_icmp_ne, Bop_none, Bop_none},
 }
 
 type Analyzer struct {
@@ -146,10 +143,10 @@ func NewAnalyzer(fileName string, program Program) *Analyzer {
 		program:   program,
 		functions: make(map[string][]string),
 		typeRegister: map[string]TypeId{
-			"int":              typeInt,
-			"float":            typeFloat,
-			"boolean":          typeBoolean,
-			"java/lang/string": typeString,
+			"int":              TypeInt,
+			"float":            TypeFloat,
+			"boolean":          TypeBoolean,
+			"java/lang/string": TypeString,
 		},
 	}
 }
@@ -169,7 +166,7 @@ func (a *Analyzer) Analyze() error {
 func (a *Analyzer) handleStatement(stmt Statement) error {
 	switch stmt := stmt.(type) {
 	case *ExpressionStatement:
-		_, err := a.handleExpression(stmt.expression)
+		_, err := a.handleExpression(stmt.Expression)
 		if err != nil {
 			return err
 		}
@@ -190,21 +187,21 @@ func (a *Analyzer) handleStatement(stmt Statement) error {
 		}
 	case *PrintStatement:
 		// test
-		t, err := a.handleExpression(stmt.expression)
+		t, err := a.handleExpression(stmt.Expression)
 		if err != nil {
 			return err
 		}
 		switch t {
-		case typeInt:
-			stmt.resolvedArgs = "(I)V"
-		case typeFloat:
-			stmt.resolvedArgs = "(F)V"
-		case typeBoolean:
-			stmt.resolvedArgs = "(Z)V"
-		case typeString:
-			stmt.resolvedArgs = "(Ljava/lang/String;)V"
+		case TypeInt:
+			stmt.ResolvedArgs = "(I)V"
+		case TypeFloat:
+			stmt.ResolvedArgs = "(F)V"
+		case TypeBoolean:
+			stmt.ResolvedArgs = "(Z)V"
+		case TypeString:
+			stmt.ResolvedArgs = "(Ljava/lang/String;)V"
 		default:
-			stmt.resolvedArgs = "(Ljava/lang/Object;)V"
+			stmt.ResolvedArgs = "(Ljava/lang/Object;)V"
 		}
 	default:
 		fmt.Printf("DEV-INFO: Skipped %T Type for typechecking\n", stmt)
@@ -213,7 +210,7 @@ func (a *Analyzer) handleStatement(stmt Statement) error {
 }
 
 func (a *Analyzer) handleBlockstmt(stmt BlockStatement) error {
-	for _, stmt := range stmt.body {
+	for _, stmt := range stmt.Body {
 		err := a.handleStatement(stmt)
 		if err != nil {
 			return err
@@ -223,44 +220,44 @@ func (a *Analyzer) handleBlockstmt(stmt BlockStatement) error {
 }
 
 func (a *Analyzer) handleIfStmt(stmt IfStatement) error {
-	exprType, err := a.handleExpression(stmt.test)
+	exprType, err := a.handleExpression(stmt.Test)
 	if err != nil {
 		return err
 	}
-	if exprType != typeBoolean {
+	if exprType != TypeBoolean {
 		return a.fail("Required a boolean test expression for the if statement", stmt.line)
 	}
-	err = a.handleStatement(stmt.consequent)
+	err = a.handleStatement(stmt.Consequent)
 	if err != nil {
 		return nil
 	}
-	if stmt.alternate != nil {
-		return a.handleStatement(stmt.alternate)
+	if stmt.Alternate != nil {
+		return a.handleStatement(stmt.Alternate)
 	}
 	return nil
 }
 
 func (a *Analyzer) handleWhileStmt(stmt WhileStatement) error {
-	exprType, err := a.handleExpression(stmt.test)
+	exprType, err := a.handleExpression(stmt.Test)
 	if err != nil {
 		return err
 	}
-	if exprType != typeBoolean {
+	if exprType != TypeBoolean {
 		return a.fail("Required a boolean test expression for the while loop", stmt.line)
 	}
-	return a.handleStatement(stmt.body)
+	return a.handleStatement(stmt.Body)
 }
 
 func (a *Analyzer) handleExpression(expr Expression) (TypeId, error) {
 	switch expr := expr.(type) {
 	case *IntegerLiteral:
-		return typeInt, nil
+		return TypeInt, nil
 	case *FloatLiteral:
-		return typeFloat, nil
+		return TypeFloat, nil
 	case *StringLiteral:
-		return typeString, nil
+		return TypeString, nil
 	case *BooleanLiteral:
-		return typeBoolean, nil
+		return TypeBoolean, nil
 	case *UnaryExpression:
 		return a.handleUnaryExpression(expr)
 	case *BinaryExpression:
@@ -270,67 +267,67 @@ func (a *Analyzer) handleExpression(expr Expression) (TypeId, error) {
 	case *Identifier:
 		variable, exists := a.variableStack[expr.name]
 		if !exists {
-			return typeUnknown, a.fail(fmt.Sprintf("Undefined variable: %s", expr.name), expr.line)
+			return TypeUnknown, a.fail(fmt.Sprintf("Undefined variable: %s", expr.name), expr.line)
 		}
-		expr.variable = &variable
-		return variable.varType, nil
+		expr.Variable = &variable
+		return variable.VarType, nil
 	default:
 		panic(fmt.Sprintf("Unhandled Expression Type: %T", expr))
 	}
 }
 
 func (a *Analyzer) handleAssignmentExpression(expr *AssignmentExpression) (TypeId, error) {
-	right, err := a.handleExpression(expr.right)
+	right, err := a.handleExpression(expr.Right)
 	if err != nil {
-		return typeUnknown, err
+		return TypeUnknown, err
 	}
-	switch left := expr.left.(type) {
+	switch left := expr.Left.(type) {
 	case *Identifier:
 		variable, exists := a.variableStack[left.name]
 		if !exists {
 			variable = Variable{
-				varType: right,
-				index:   len(a.variableStack),
+				VarType: right,
+				Index:   len(a.variableStack),
 			}
 		}
-		left.variable = &variable
+		left.Variable = &variable
 		a.variableStack[left.name] = variable
 	default:
-		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.left))
+		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.Left))
 	}
 	return right, nil
 }
 
 func (a *Analyzer) handleUnaryExpression(expr *UnaryExpression) (TypeId, error) {
-	right, err := a.handleExpression(expr.value)
+	right, err := a.handleExpression(expr.Value)
 	if err != nil {
-		return typeUnknown, err
+		return TypeUnknown, err
 	}
 	key := UnaryTypeKey{expr.unaryType, right}
 	result, exists := unaryRules[key]
 	if !exists {
-		return typeUnknown, a.fail("Invalid Unary Expression", expr.line)
+		return TypeUnknown, a.fail("Invalid Unary Expression", expr.line)
 	}
-	expr.typeInfo = result
+	expr.TypeInfo = result
 	return right, nil
 }
 
 func (a *Analyzer) handleBinaryExpression(expr *BinaryExpression) (TypeId, error) {
-	left, err := a.handleExpression(expr.left)
+	left, err := a.handleExpression(expr.Left)
 	if err != nil {
-		return typeUnknown, err
+		return TypeUnknown, err
 	}
-	right, err := a.handleExpression(expr.right)
+	right, err := a.handleExpression(expr.Right)
 	if err != nil {
-		return typeUnknown, err
+		return TypeUnknown, err
 	}
 	var exists bool
 	key := BinaryTypeKey{left, expr.binaryType, right}
-	expr.typeInfo, exists = binaryRules[key]
+	expr.TypeInfo, exists = binaryRules[key]
 	if !exists {
-		return typeUnknown, a.fail("Invalid Binary Expression", expr.line)
+		return TypeUnknown, a.fail("Invalid Binary Expression", expr.line)
 	}
-	return expr.typeInfo.result, nil
+	return expr.TypeInfo.result, nil
 }
 
 func (a *Analyzer) fail(message string, line uint) error {

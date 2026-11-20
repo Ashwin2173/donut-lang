@@ -1,12 +1,7 @@
 package parser
 
-type Word struct {
-	Raw    string
-	Type   TokenType
-	Line   uint
-	Column uint
-	End    uint
-}
+type TypeId int32
+type ExpOpTypeId int
 
 type Statement interface{ isStatement() }
 type Expression interface{ isExpression() }
@@ -16,7 +11,7 @@ type Program struct {
 }
 
 type ExpressionStatement struct {
-	expression Expression
+	Expression Expression
 	line       uint
 }
 
@@ -28,7 +23,7 @@ type FunctionStatement struct {
 }
 
 type BlockStatement struct {
-	body []Statement
+	Body []Statement
 	line uint
 }
 
@@ -38,22 +33,22 @@ type ReturnStatement struct {
 }
 
 type WhileStatement struct {
-	test Expression
-	body Statement
+	Test Expression
+	Body Statement
 	line uint
 }
 
 type IfStatement struct {
-	test       Expression
-	consequent Statement
-	alternate  Statement
+	Test       Expression
+	Consequent Statement
+	Alternate  Statement
 	line       uint
 }
 
 type PrintStatement struct {
 	// temp
-	expression   Expression
-	resolvedArgs string
+	Expression   Expression
+	ResolvedArgs string
 	line         uint
 }
 
@@ -70,43 +65,43 @@ type NullLiteral struct{}
 type Identifier struct {
 	name     string
 	line     uint
-	variable *Variable
+	Variable *Variable
 }
 
 type Variable struct {
-	varType TypeId
-	index   int
+	VarType TypeId
+	Index   int
 }
 
 type IntegerLiteral struct {
-	value int64
+	Value int64
 }
 
 type FloatLiteral struct {
-	value float64
+	Value float64
 }
 
 type StringLiteral struct {
-	value string
+	Value string
 }
 
 type BooleanLiteral struct {
-	value bool
+	Value bool
 }
 
 type UnaryExpression struct {
 	unaryType TokenType
-	value     Expression
-	typeInfo  ExpOpTypeId
+	Value     Expression
+	TypeInfo  ExpOpTypeId
 	line      uint
 }
 
 type BinaryExpression struct {
-	left       Expression
+	Left       Expression
 	binaryType TokenType
-	right      Expression
+	Right      Expression
 	line       uint
-	typeInfo   BinaryTypeValue
+	TypeInfo   BinaryTypeValue
 }
 
 type AssignmentExpression BinaryExpression

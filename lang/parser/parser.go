@@ -94,7 +94,7 @@ func (p *Parser) scanBlockStatement() (*BlockStatement, error) {
 		if token.Type == t_closeBrace {
 			p.tokens.next()
 			return &BlockStatement{
-				body: body,
+				Body: body,
 				line: openBrace.Line,
 			}, nil
 		}
@@ -150,9 +150,9 @@ func (p *Parser) scanIfStatement() (*IfStatement, error) {
 		}
 	}
 	return &IfStatement{
-		test:       expr,
-		consequent: consequent,
-		alternate:  alternate,
+		Test:       expr,
+		Consequent: consequent,
+		Alternate:  alternate,
 		line:       token.Line,
 	}, nil
 }
@@ -172,8 +172,8 @@ func (p *Parser) scanWhileStatement() (*WhileStatement, error) {
 		return nil, err
 	}
 	return &WhileStatement{
-		test: expr,
-		body: bodystmt,
+		Test: expr,
+		Body: bodystmt,
 		line: token.Line,
 	}, nil
 }
@@ -194,10 +194,10 @@ func (p *Parser) scanPrintStatement() (*PrintStatement, error) {
 		if err != nil {
 			return nil, err
 		}
-		expression = expstmt.expression
+		expression = expstmt.Expression
 	}
 	return &PrintStatement{
-		expression: expression,
+		Expression: expression,
 		line:       ret.Line,
 	}, nil
 }
@@ -217,7 +217,7 @@ func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {
 		if err != nil {
 			return nil, err
 		}
-		expression = expstmt.expression
+		expression = expstmt.Expression
 	}
 	return &ReturnStatement{
 		expression: expression,
@@ -236,7 +236,7 @@ func (p *Parser) scanExpressionStatement() (*ExpressionStatement, error) {
 		return nil, p.fail("Expected Semicolon after expression")
 	}
 	return &ExpressionStatement{
-		expression: exp,
+		Expression: exp,
 		line:       token.Line,
 	}, nil
 }
@@ -252,7 +252,7 @@ func (p *Parser) scanAssignment() (Expression, error) {
 	}
 	binExpr, ok := expr.(*BinaryExpression)
 	if ok && binExpr.binaryType == t_equal {
-		switch binExpr.left.(type) {
+		switch binExpr.Left.(type) {
 		case *Identifier:
 			assignExpr := AssignmentExpression(*binExpr)
 			return &assignExpr, nil
@@ -297,7 +297,7 @@ func (p *Parser) scanUnary() (Expression, error) {
 		}
 		return &UnaryExpression{
 			unaryType: token.Type,
-			value:     right,
+			Value:     right,
 			line:      token.Line,
 		}, nil
 	}
@@ -316,12 +316,12 @@ func (p *Parser) scanPrimary() (Expression, error) {
 	switch token.Type {
 	case t_integerLit:
 		value, _ := strconv.Atoi(token.Raw)
-		return &IntegerLiteral{value: int64(value)}, nil
+		return &IntegerLiteral{Value: int64(value)}, nil
 	case t_floatLit:
 		value, _ := strconv.ParseFloat(token.Raw, 64)
-		return &FloatLiteral{value: value}, nil
+		return &FloatLiteral{Value: value}, nil
 	case t_stringLit:
-		return &StringLiteral{value: token.Raw[1 : len(token.Raw)-1]}, nil
+		return &StringLiteral{Value: token.Raw[1 : len(token.Raw)-1]}, nil
 	case t_identifier:
 		return &Identifier{name: token.Raw, line: token.Line}, nil
 	case t_openParen:
@@ -339,7 +339,7 @@ func (p *Parser) scanPrimary() (Expression, error) {
 		if token.Type == k_true {
 			value = true
 		}
-		return &BooleanLiteral{value: value}, nil
+		return &BooleanLiteral{Value: value}, nil
 	}
 	return nil, p.fail("Invalid Syntax")
 }
@@ -360,9 +360,9 @@ func (p *Parser) makeBinary(callNext func() (Expression, error), operators ...To
 			return nil, err
 		}
 		left = &BinaryExpression{
-			left:       left,
+			Left:       left,
 			binaryType: token.Type,
-			right:      right,
+			Right:      right,
 			line:       token.Line,
 		}
 	}

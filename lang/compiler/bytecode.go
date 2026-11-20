@@ -146,10 +146,6 @@ func (b *ByteCode) patchJumpTo(pos int, target int) {
 
 // opcode functions
 
-func (b *ByteCode) opReturn() {
-	b.writeU1(op_return)
-}
-
 func (b *ByteCode) opBipush(value byte) {
 	b.writeU1(op_bipush)
 	b.writeU1(value)
@@ -295,87 +291,6 @@ func (b *ByteCode) opInvokeDynamic(index uint16) {
 	b.writeU2(index)
 	b.writeU1(0)
 	b.writeU1(0)
-}
-
-func (b *ByteCode) opIAdd() {
-	b.writeU1(OP_IADD)
-}
-
-func (b *ByteCode) opISub() {
-	b.writeU1(OP_ISUB)
-}
-
-func (b *ByteCode) opIMul() {
-	b.writeU1(OP_IMUL)
-}
-
-func (b *ByteCode) opIDiv() {
-	b.writeU1(OP_IDIV)
-}
-
-func (b *ByteCode) opIRem() {
-	b.writeU1(OP_IREM)
-}
-
-func (b *ByteCode) opFAdd() {
-	b.writeU1(OP_FADD)
-}
-
-func (b *ByteCode) opFSub() {
-	b.writeU1(OP_FSUB)
-}
-
-func (b *ByteCode) opFMul() {
-	b.writeU1(OP_FMUL)
-}
-
-func (b *ByteCode) opFDiv() {
-	b.writeU1(OP_FDIV)
-}
-
-func (b *ByteCode) opFRem() {
-	b.writeU1(OP_FREM)
-}
-
-func (b *ByteCode) opI2F() {
-	b.writeU1(OP_I2F)
-}
-
-func (b *ByteCode) opIconst0() {
-	b.writeU1(OP_ICONST_0)
-}
-
-func (b *ByteCode) opIconst1() {
-	b.writeU1(OP_ICONST_1)
-}
-
-func (b *ByteCode) opFcmpl() {
-	b.writeU1(OP_FCMPL)
-}
-
-func (b *ByteCode) opIAnd() {
-	b.writeU1(OP_IAND)
-}
-
-func (b *ByteCode) opIOr() {
-	b.writeU1(OP_IOR)
-}
-
-func (b *ByteCode) opINeg() {
-	b.writeU1(OP_INEG)
-}
-
-func (b *ByteCode) opFNeg() {
-	b.writeU1(OP_FNEG)
-}
-
-func (b *ByteCode) opNot() {
-	b.writeU1(OP_ICONST_1)
-	b.writeU1(OP_IXOR)
-}
-
-func (b *ByteCode) opIXor() {
-	b.writeU1(OP_IXOR)
 }
 
 func (b *ByteCode) opInvokeVirtual(index uint16) {

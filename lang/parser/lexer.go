@@ -88,6 +88,14 @@ const (
 	k_eof
 )
 
+type Word struct {
+	Raw    string
+	Type   TokenType
+	Line   uint
+	Column uint
+	End    uint
+}
+
 func Tokenize(source string) []Word {
 	if len(groupNames) != int(k_eof) {
 		panic("CORE_ERROR: Grammer contains unhandled groups")
