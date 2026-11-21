@@ -1,12 +1,3 @@
 function main() {
-    if false {
-        print("yes");
-    } else {
-        if false {
-            print("maybe");
-        } else {
-            print("nope");
-        }
-    }
-    return;
+    print("hello");
 }

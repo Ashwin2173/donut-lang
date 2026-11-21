@@ -228,7 +228,7 @@ func (a *Analyzer) handleIfStmt(stmt IfStatement) error {
 	}
 	err = a.handleStatement(stmt.Consequent)
 	if err != nil {
-		return nil
+		return err
 	}
 	if stmt.Alternate != nil {
 		return a.handleStatement(stmt.Alternate)

@@ -239,7 +239,7 @@ func (c *Code) compileExpressionNode(opType parser.ExpOpTypeId) (bc ByteCode) {
 
 func (c *Code) compileComparison(bc *ByteCode, cmpOpcode byte, isFloat bool) {
 	if isFloat {
-		bc.writeU2(op_fcmpl)
+		bc.writeU1(op_fcmpl)
 	}
 	trueJump := bc.writeJumpPlaceholder(cmpOpcode)
 	bc.writeU1(op_iconst_0)
