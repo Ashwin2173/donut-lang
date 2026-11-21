@@ -1,12 +1,12 @@
 function main() {
-    count = 0;
-    while count <= 10 {
-        if count % 2 == 0 {
-            print("Even");
+    if false {
+        print("yes");
+    } else {
+        if false {
+            print("maybe");
         } else {
-            print("Odd");
+            print("nope");
         }
-        count = count + 1;
     }
     return;
 }
