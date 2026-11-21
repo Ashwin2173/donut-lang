@@ -9,7 +9,7 @@ import (
 type Context struct {
 	FileName string
 
-	className string
+	ClassName string
 	program   *parser.Program
 	cp        *ConstantPool
 }
@@ -19,7 +19,7 @@ func NewContext(fileName string) *Context {
 	extention := filepath.Ext(fileName)
 	return &Context{
 		FileName:  fileName,
-		className: fileName[:len(fileName)-len(extention)],
+		ClassName: fileName[:len(fileName)-len(extention)],
 		cp:        NewConstantPool(),
 	}
 }

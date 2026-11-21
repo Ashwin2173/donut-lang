@@ -7,23 +7,30 @@ import (
 )
 
 type Code struct {
-	statements []parser.Statement
-	cp         *ConstantPool
+	codeBlock *parser.BlockStatement
+	cp        *ConstantPool
 
-	stackSize int16
-	maxLocals int16
+	stackSize uint16
+	maxLocals uint16
 }
 
-func NewCode(context *Context, stmts []parser.Statement) *Code {
+func NewCode(context *Context, body *parser.BlockStatement) *Code {
 	return &Code{
-		statements: stmts,
-		cp:         context.cp,
-		stackSize:  255, // todo: unhardcode this
-		maxLocals:  200, // todo: unhardcode this
+		codeBlock: body,
+		cp:        context.cp,
+		stackSize: 255, // todo: unhardcode this
+		maxLocals: 200, // todo: unhardcode this
 	}
 }
 
 func (c Code) GetByteCode(context *Context) (bc ByteCode) {
+	stmtBc := c.compileStatement(c.codeBlock)
+	bc.writeU2(c.stackSize)
+	bc.writeU2(c.maxLocals)
+	bc.writeU4(uint32(stmtBc.length()))
+	bc.dump(stmtBc)
+	bc.writeU2(0) // exception table
+	bc.writeU2(0) // attribute count
 	return
 }
 

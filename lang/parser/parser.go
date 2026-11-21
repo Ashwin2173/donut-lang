@@ -9,15 +9,15 @@ import (
 )
 
 type Parser struct {
-	fileName string
+	filePath string
 	tokens   *Generator[Word]
 }
 
-func New(fileName, source string) *Parser {
+func New(filePath, source string) *Parser {
 	tokens := Tokenize(source)
 	// fmt.Println("Tokens:", tokens)
 	return &Parser{
-		fileName: fileName,
+		filePath: filePath,
 		tokens:   NewGenerator(tokens),
 	}
 }
@@ -44,12 +44,12 @@ func (p *Parser) ParseProgram() (*Program, error) {
 		}
 	}
 	return p.analyzeProgram(Program{
-		functions: functions,
+		Functions: functions,
 	})
 }
 
 func (p *Parser) analyzeProgram(program Program) (*Program, error) {
-	analyzer := NewAnalyzer(p.fileName, program)
+	analyzer := NewAnalyzer(p.filePath, program)
 	err := analyzer.Analyze()
 	if err != nil {
 		return nil, err
@@ -75,8 +75,8 @@ func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
 		return nil, err
 	}
 	return &FunctionStatement{
-		name: name.Raw,
-		body: *body,
+		Name: name.Raw,
+		Body: *body,
 	}, nil
 }
 
@@ -385,7 +385,7 @@ func (p *Parser) fail(message string) error {
 	token, _ := p.tokens.peek()
 	return error(lang.CompileError{
 		Message:  message,
-		FileName: p.fileName,
+		FileName: p.filePath,
 		Line:     token.Line,
 		Col:      token.Column,
 	})

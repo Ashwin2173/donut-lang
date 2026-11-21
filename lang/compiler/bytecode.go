@@ -116,6 +116,8 @@ func (b *ByteCode) dumpRaw(bytes []byte) {
 	b.byteCode = append(b.byteCode, bytes...)
 }
 
+// helper functions
+
 func (b *ByteCode) beginAttr() (pos int) {
 	pos = len(b.byteCode)
 	b.writeU2(0)
@@ -144,7 +146,7 @@ func (b *ByteCode) patchJumpTo(pos int, target int) {
 	binary.BigEndian.PutUint16(b.byteCode[pos:], uint16(offset))
 }
 
-// opcode functions
+// opcode helper functions
 
 func (b *ByteCode) opBipush(value byte) {
 	b.writeU1(op_bipush)

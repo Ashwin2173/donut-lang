@@ -1,8 +1,8 @@
 package lang
 
 const (
-	FileExtension    = ".dt"
-	TARGET_EXTENSION = ".class"
+	FileExtension   = ".dt"
+	TargetExtension = ".class"
 )
 
 type StatementType int

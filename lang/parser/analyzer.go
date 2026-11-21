@@ -130,16 +130,16 @@ var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
 }
 
 type Analyzer struct {
-	fileName      string
+	filePath      string
 	program       Program
 	functions     map[string][]string
 	variableStack map[string]Variable // todo: convert this to a stack which will holder the scoped variables.
 	typeRegister  map[string]TypeId
 }
 
-func NewAnalyzer(fileName string, program Program) *Analyzer {
+func NewAnalyzer(filePath string, program Program) *Analyzer {
 	return &Analyzer{
-		fileName:  fileName,
+		filePath:  filePath,
 		program:   program,
 		functions: make(map[string][]string),
 		typeRegister: map[string]TypeId{
@@ -152,10 +152,9 @@ func NewAnalyzer(fileName string, program Program) *Analyzer {
 }
 
 func (a *Analyzer) Analyze() error {
-	for i, fnStmt := range a.program.functions {
+	for _, fnStmt := range a.program.Functions {
 		a.variableStack = make(map[string]Variable)
-		err := a.handleStatement(&fnStmt.body)
-		a.program.functions[i].maxLocals = len(a.variableStack) + 1 // todo: unhardcode this
+		err := a.handleStatement(&fnStmt.Body)
 		if err != nil {
 			return err
 		}
@@ -333,7 +332,7 @@ func (a *Analyzer) handleBinaryExpression(expr *BinaryExpression) (TypeId, error
 func (a *Analyzer) fail(message string, line uint) error {
 	return error(lang.CompileError{
 		Message:  message,
-		FileName: a.fileName,
+		FileName: a.filePath,
 		Line:     line,
 		Col:      0,
 	})

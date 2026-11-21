@@ -1,7 +1,12 @@
 function main() {
-    variable := 1;
-    if variable {
-        print("Hello");
+    if false {
+        print("yes");
+    } else {
+        if false {
+            print("maybe");
+        } else {
+            print("nope");
+        }
     }
     return;
 }

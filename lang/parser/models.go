@@ -7,7 +7,7 @@ type Statement interface{ isStatement() }
 type Expression interface{ isExpression() }
 
 type Program struct {
-	functions []FunctionStatement
+	Functions []FunctionStatement
 }
 
 type ExpressionStatement struct {
@@ -16,10 +16,9 @@ type ExpressionStatement struct {
 }
 
 type FunctionStatement struct {
-	name      string
-	arguments []Identifier
-	body      BlockStatement
-	maxLocals int
+	Name      string
+	Arguments []Identifier
+	Body      BlockStatement
 }
 
 type BlockStatement struct {
