@@ -299,10 +299,18 @@ func (a *Analyzer) handleAssignmentExpression(expr *AssignmentExpression) (TypeI
 			variable := &Variable{
 				VarType: right,
 			}
+			expr.IsNew = true
 			a.context.variableStack[length][left.Name] = variable
 			left.Variable = variable
 		} else {
-			return a.getIdentifier(left)
+			leftType, err := a.getIdentifier(left)
+			if err != nil {
+				return TypeUnknown, err
+			}
+			if leftType != right {
+				return TypeUnknown, a.fail("Assignment type mismatch", expr.line)
+			}
+			return leftType, nil
 		}
 	default:
 		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.Left))

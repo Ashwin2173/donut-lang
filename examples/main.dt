@@ -1,5 +1,11 @@
-function main() string {
+function main() {
     x := 10;
+    if true {
+        x := 100;
+        print(x);
+    }
+    z := 0;
     print(x);
+    print(z);
     return;
 }

@@ -137,10 +137,15 @@ func (c *Code) compileExpression(expr parser.Expression) (bc ByteCode) {
 
 func (c *Code) compileAssignmentExpression(expr parser.AssignmentExpression) (bc ByteCode) {
 	bc.dump(c.compileExpression(expr.Right))
-	switch expr := expr.Left.(type) {
+	switch left := expr.Left.(type) {
 	case *parser.Identifier:
-		index := c.newLocal(expr.Name)
-		switch expr.Variable.VarType {
+		var index uint16
+		if expr.IsNew {
+			index = c.newLocal(left.Name)
+		} else {
+			index = c.getLocal(left.Name)
+		}
+		switch left.Variable.VarType {
 		case parser.TypeInt, parser.TypeBoolean:
 			bc.opIstore(index)
 		case parser.TypeFloat:
@@ -264,7 +269,7 @@ func (c *Code) newLocal(name string) (index uint16) {
 	if LocalsPoolLength != 0 {
 		index = c.LocalsPool[LocalsPoolLength-1]
 		c.LocalsPool = c.LocalsPool[:LocalsPoolLength-1]
-		c.LocalsStack[frameLength][name] = index
+		c.LocalsStack[frameLength-1][name] = index
 		return
 	}
 	c.LocalsStack[frameLength-1][name] = c.maxLocals
@@ -286,4 +291,5 @@ func (c *Code) getLocal(name string) uint16 {
 func (c *Code) popLocalsStack() {
 	frame := c.LocalsStack[len(c.LocalsStack)-1]
 	c.LocalsPool = append(c.LocalsPool, slices.Collect(maps.Values(frame))...)
+	c.LocalsStack = c.LocalsStack[:len(c.LocalsStack)-1]
 }

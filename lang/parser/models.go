@@ -103,7 +103,10 @@ type BinaryExpression struct {
 	TypeInfo   BinaryTypeValue
 }
 
-type AssignmentExpression BinaryExpression
+type AssignmentExpression struct {
+	IsNew bool
+	BinaryExpression
+}
 
 func (Identifier) isExpression()           {}
 func (NullLiteral) isExpression()          {}

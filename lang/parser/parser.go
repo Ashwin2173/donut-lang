@@ -264,8 +264,14 @@ func (p *Parser) scanAssignment() (Expression, error) {
 	if ok && (binExpr.binaryType == t_equal || binExpr.binaryType == t_colonEqual) {
 		switch binExpr.Left.(type) {
 		case *Identifier:
-			assignExpr := AssignmentExpression(*binExpr)
-			return &assignExpr, nil
+			assignExpr := &AssignmentExpression{
+				Left: binExpr.Left,
+				binaryType: binExpr.binaryType,
+				Right: binExpr.Right,
+				line: binExpr.line,
+				TypeInfo: binExpr.TypeInfo,
+			}
+			return assignExpr, nil
 		default:
 			return nil, p.fail("Expected Identifier on left side of Assignment")
 		}
