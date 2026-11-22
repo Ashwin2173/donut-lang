@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 
 	"donut/lang"
 )
@@ -9,6 +10,7 @@ import (
 // primary types
 const (
 	TypeUnknown TypeId = iota
+	TypeVoid
 	TypeInt
 	TypeFloat
 	TypeString
@@ -129,12 +131,24 @@ var binaryRules = map[BinaryTypeKey]BinaryTypeValue{
 	{TypeBoolean, t_bangEqual, TypeBoolean}:  {TypeBoolean, Bop_icmp_ne, Bop_none, Bop_none},
 }
 
+type Context struct {
+	variableStack   []map[string]*Variable
+	functionPointer *FunctionStatement
+}
+
+func NewContext(function *FunctionStatement) *Context {
+	return &Context{
+		variableStack:   make([]map[string]*Variable, 0),
+		functionPointer: function,
+	}
+}
+
 type Analyzer struct {
-	filePath      string
-	program       Program
-	functions     map[string][]string
-	variableStack map[string]Variable // todo: convert this to a stack which will holder the scoped variables.
-	typeRegister  map[string]TypeId
+	filePath     string
+	program      Program
+	functions    map[string][]string
+	context      *Context
+	typeRegister map[string]TypeId
 }
 
 func NewAnalyzer(filePath string, program Program) *Analyzer {
@@ -143,6 +157,7 @@ func NewAnalyzer(filePath string, program Program) *Analyzer {
 		program:   program,
 		functions: make(map[string][]string),
 		typeRegister: map[string]TypeId{
+			"void":             TypeVoid,
 			"int":              TypeInt,
 			"float":            TypeFloat,
 			"boolean":          TypeBoolean,
@@ -153,7 +168,7 @@ func NewAnalyzer(filePath string, program Program) *Analyzer {
 
 func (a *Analyzer) Analyze() error {
 	for _, fnStmt := range a.program.Functions {
-		a.variableStack = make(map[string]Variable)
+		a.context = NewContext(&fnStmt)
 		err := a.handleStatement(&fnStmt.Body)
 		if err != nil {
 			return err
@@ -209,12 +224,14 @@ func (a *Analyzer) handleStatement(stmt Statement) error {
 }
 
 func (a *Analyzer) handleBlockstmt(stmt BlockStatement) error {
+	a.context.variableStack = append(a.context.variableStack, make(map[string]*Variable))
 	for _, stmt := range stmt.Body {
 		err := a.handleStatement(stmt)
 		if err != nil {
 			return err
 		}
 	}
+	a.context.variableStack = a.context.variableStack[:len(a.context.variableStack)-1]
 	return nil
 }
 
@@ -264,12 +281,7 @@ func (a *Analyzer) handleExpression(expr Expression) (TypeId, error) {
 	case *AssignmentExpression:
 		return a.handleAssignmentExpression(expr)
 	case *Identifier:
-		variable, exists := a.variableStack[expr.name]
-		if !exists {
-			return TypeUnknown, a.fail(fmt.Sprintf("Undefined variable: %s", expr.name), expr.line)
-		}
-		expr.Variable = &variable
-		return variable.VarType, nil
+		return a.getIdentifier(expr)
 	default:
 		panic(fmt.Sprintf("Unhandled Expression Type: %T", expr))
 	}
@@ -282,15 +294,16 @@ func (a *Analyzer) handleAssignmentExpression(expr *AssignmentExpression) (TypeI
 	}
 	switch left := expr.Left.(type) {
 	case *Identifier:
-		variable, exists := a.variableStack[left.name]
-		if !exists {
-			variable = Variable{
+		length := len(a.context.variableStack) - 1
+		if expr.binaryType == t_colonEqual {
+			variable := &Variable{
 				VarType: right,
-				Index:   len(a.variableStack),
 			}
+			a.context.variableStack[length][left.Name] = variable
+			left.Variable = variable
+		} else {
+			return a.getIdentifier(left)
 		}
-		left.Variable = &variable
-		a.variableStack[left.name] = variable
 	default:
 		panic(fmt.Sprintf("Unhandled Assignment Type: %T", expr.Left))
 	}
@@ -327,6 +340,22 @@ func (a *Analyzer) handleBinaryExpression(expr *BinaryExpression) (TypeId, error
 		return TypeUnknown, a.fail("Invalid Binary Expression", expr.line)
 	}
 	return expr.TypeInfo.result, nil
+}
+
+func (a *Analyzer) getIdentifier(id *Identifier) (TypeId, error) {
+	var variable *Variable
+	for _, frame := range slices.Backward(a.context.variableStack) {
+		var exists bool
+		variable, exists = frame[id.Name]
+		if exists {
+			break
+		}
+	}
+	if variable == nil {
+		return TypeUnknown, a.fail(fmt.Sprintf("Undefined variable: %s", id.Name), id.line)
+	}
+	id.Variable = variable
+	return variable.VarType, nil
 }
 
 func (a *Analyzer) fail(message string, line uint) error {

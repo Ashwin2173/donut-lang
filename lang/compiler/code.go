@@ -2,6 +2,8 @@ package compiler
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"donut/lang/parser"
 )
@@ -12,6 +14,9 @@ type Code struct {
 
 	stackSize uint16
 	maxLocals uint16
+
+	LocalsStack []map[string]uint16
+	LocalsPool  []uint16
 }
 
 func NewCode(context *Context, body *parser.BlockStatement) *Code {
@@ -19,7 +24,7 @@ func NewCode(context *Context, body *parser.BlockStatement) *Code {
 		codeBlock: body,
 		cp:        context.cp,
 		stackSize: 255, // todo: unhardcode this
-		maxLocals: 200, // todo: unhardcode this
+		maxLocals: 0,
 	}
 }
 
@@ -45,9 +50,11 @@ func (c *Code) compileStatement(stmt parser.Statement) (bc ByteCode) {
 	case *parser.IfStatement:
 		bc.dump(c.compileIfStmt(*stmt))
 	case *parser.BlockStatement:
+		c.LocalsStack = append(c.LocalsStack, make(map[string]uint16))
 		for _, s := range stmt.Body {
 			bc.dump(c.compileStatement(s))
 		}
+		c.popLocalsStack()
 	case *parser.PrintStatement: // todo: drop this once function calls are implemented
 		bc.dump(c.compileExpression(stmt.Expression))
 		bc.opInvokeStatic(c.cp.AddMethodRef("Console", "log", stmt.ResolvedArgs))
@@ -113,13 +120,14 @@ func (c *Code) compileExpression(expr parser.Expression) (bc ByteCode) {
 			bc.opLoadConstant(intIndex)
 		}
 	case *parser.Identifier:
+		index := c.getLocal(expr.Name)
 		switch expr.Variable.VarType {
 		case parser.TypeInt, parser.TypeBoolean:
-			bc.opIload(uint16(expr.Variable.Index))
+			bc.opIload(index)
 		case parser.TypeFloat:
-			bc.opFload(uint16(expr.Variable.Index))
+			bc.opFload(index)
 		default:
-			bc.opAload(uint16(expr.Variable.Index))
+			bc.opAload(index)
 		}
 	default:
 		panic(fmt.Sprintf("Unhandled expression type: %T", expr))
@@ -131,13 +139,14 @@ func (c *Code) compileAssignmentExpression(expr parser.AssignmentExpression) (bc
 	bc.dump(c.compileExpression(expr.Right))
 	switch expr := expr.Left.(type) {
 	case *parser.Identifier:
+		index := c.newLocal(expr.Name)
 		switch expr.Variable.VarType {
 		case parser.TypeInt, parser.TypeBoolean:
-			bc.opIstore(uint16(expr.Variable.Index))
+			bc.opIstore(index)
 		case parser.TypeFloat:
-			bc.opFstore(uint16(expr.Variable.Index))
+			bc.opFstore(index)
 		default:
-			bc.opAstore(uint16(expr.Variable.Index))
+			bc.opAstore(index)
 		}
 	default:
 		panic(fmt.Sprintf("Unhandled Assignment type: %T", expr))
@@ -247,4 +256,34 @@ func (c *Code) compileComparison(bc *ByteCode, cmpOpcode byte, isFloat bool) {
 	bc.patchJump(trueJump)
 	bc.writeU1(op_iconst_1)
 	bc.patchJump(endJump)
+}
+
+func (c *Code) newLocal(name string) (index uint16) {
+	LocalsPoolLength := len(c.LocalsPool)
+	frameLength := len(c.LocalsStack)
+	if LocalsPoolLength != 0 {
+		index = c.LocalsPool[LocalsPoolLength-1]
+		c.LocalsPool = c.LocalsPool[:LocalsPoolLength-1]
+		c.LocalsStack[frameLength][name] = index
+		return
+	}
+	c.LocalsStack[frameLength-1][name] = c.maxLocals
+	index = c.maxLocals
+	c.maxLocals++
+	return
+}
+
+func (c *Code) getLocal(name string) uint16 {
+	for _, frame := range slices.Backward(c.LocalsStack) {
+		index, exists := frame[name]
+		if exists {
+			return index
+		}
+	}
+	panic("Reached unreachable code: Failed at getLocal while compiling; Parser failed to cature this.")
+}
+
+func (c *Code) popLocalsStack() {
+	frame := c.LocalsStack[len(c.LocalsStack)-1]
+	c.LocalsPool = append(c.LocalsPool, slices.Collect(maps.Values(frame))...)
 }

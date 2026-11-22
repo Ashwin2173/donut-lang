@@ -70,13 +70,23 @@ func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
 	if err != nil {
 		return nil, p.fail("Expected ')'")
 	}
+	returnType := "void"
+	token, isEnd := p.tokens.peek()
+	if !isEnd && token.Type != t_openBrace {
+		returnToken, err := p.expectToken(t_identifier)
+		if err != nil {
+			return nil, err
+		}
+		returnType = returnToken.Raw
+	}
 	body, err := p.scanBlockStatement()
 	if err != nil {
 		return nil, err
 	}
 	return &FunctionStatement{
-		Name: name.Raw,
-		Body: *body,
+		Name:       name.Raw,
+		Body:       *body,
+		ReturnType: returnType,
 	}, nil
 }
 
@@ -246,12 +256,12 @@ func (p *Parser) scanExpression() (Expression, error) {
 }
 
 func (p *Parser) scanAssignment() (Expression, error) {
-	expr, err := p.makeBinary(p.scanLogicalOr, t_equal)
+	expr, err := p.makeBinary(p.scanLogicalOr, t_equal, t_colonEqual)
 	if err != nil {
 		return nil, err
 	}
 	binExpr, ok := expr.(*BinaryExpression)
-	if ok && binExpr.binaryType == t_equal {
+	if ok && (binExpr.binaryType == t_equal || binExpr.binaryType == t_colonEqual) {
 		switch binExpr.Left.(type) {
 		case *Identifier:
 			assignExpr := AssignmentExpression(*binExpr)
@@ -323,7 +333,7 @@ func (p *Parser) scanPrimary() (Expression, error) {
 	case t_stringLit:
 		return &StringLiteral{Value: token.Raw[1 : len(token.Raw)-1]}, nil
 	case t_identifier:
-		return &Identifier{name: token.Raw, line: token.Line}, nil
+		return &Identifier{Name: token.Raw, line: token.Line}, nil
 	case t_openParen:
 		expr, err := p.scanExpression()
 		if err != nil {

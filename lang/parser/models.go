@@ -16,9 +16,10 @@ type ExpressionStatement struct {
 }
 
 type FunctionStatement struct {
-	Name      string
-	Arguments []Identifier
-	Body      BlockStatement
+	Name       string
+	Arguments  []Identifier
+	ReturnType string
+	Body       BlockStatement
 }
 
 type BlockStatement struct {
@@ -62,14 +63,13 @@ func (ExpressionStatement) isStatement() {}
 type NullLiteral struct{}
 
 type Identifier struct {
-	name     string
+	Name     string
 	line     uint
 	Variable *Variable
 }
 
 type Variable struct {
 	VarType TypeId
-	Index   int
 }
 
 type IntegerLiteral struct {

@@ -40,6 +40,7 @@ var tokenGrammar = regexp.MustCompile(strings.Join([]string{
 	`(?P<t_lesser><)`,
 	`(?P<t_greater>>)`,
 	`(?P<t_equal>=)`,
+	`(?P<t_colonEqual>:=)`,
 	`(?P<newline>\n)`,
 }, "|"))
 
@@ -84,6 +85,7 @@ const (
 	t_lesser
 	t_greater
 	t_equal
+	t_colonEqual
 	newline
 	k_eof
 )
