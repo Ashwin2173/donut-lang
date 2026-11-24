@@ -8,6 +8,44 @@ import (
 	"donut/lang/parser"
 )
 
+var opcodeForOpr = map[parser.ExpOpTypeId]byte{
+	parser.Bop_iadd: op_iadd,
+	parser.Bop_isub: op_isub,
+	parser.Bop_imul: op_imul,
+	parser.Bop_idiv: op_idiv,
+	parser.Bop_irem: op_irem,
+	parser.Bop_fadd: op_fadd,
+	parser.Bop_fsub: op_fsub,
+	parser.Bop_fmul: op_fmul,
+	parser.Bop_fdiv: op_fdiv,
+	parser.Bop_frem: op_frem,
+	parser.Bop_i2f:  op_i2f,
+	parser.Bop_iand: op_iand,
+	parser.Bop_ior:  op_ior,
+	parser.Uop_ineg: op_ineg,
+	parser.Uop_fneg: op_fneg,
+}
+
+type cmpOp struct {
+	opcode  byte
+	isFloat bool
+}
+
+var comparisonOpcode = map[parser.ExpOpTypeId]cmpOp{
+	parser.Bop_fcmp_lt: {op_iflt, true},
+	parser.Bop_fcmp_gt: {op_ifgt, true},
+	parser.Bop_fcmp_le: {op_ifle, true},
+	parser.Bop_fcmp_ge: {op_ifge, true},
+	parser.Bop_fcmp_eq: {op_ifeq, true},
+	parser.Bop_fcmp_ne: {op_ifne, true},
+	parser.Bop_icmp_lt: {op_if_icmplt, false},
+	parser.Bop_icmp_gt: {op_if_icmpgt, false},
+	parser.Bop_icmp_le: {op_if_icmple, false},
+	parser.Bop_icmp_ge: {op_if_icmpge, false},
+	parser.Bop_icmp_eq: {op_if_icmpeq, false},
+	parser.Bop_icmp_ne: {op_if_icmpne, false},
+}
+
 type Code struct {
 	codeBlock *parser.BlockStatement
 	cp        *ConstantPool
@@ -105,16 +143,15 @@ func (c *Code) compileExpression(expr parser.Expression) (bc ByteCode) {
 		floatIndex := c.cp.AddFloat(float32(expr.Value))
 		bc.opLoadConstant(floatIndex)
 	case *parser.BooleanLiteral:
-		var value int32 = 0
 		if expr.Value {
-			value = 1
+			bc.writeU1(op_iconst_1)
+		} else {
+			bc.writeU1(op_iconst_0)
 		}
-		intIndex := c.cp.AddInteger(value)
-		bc.opLoadConstant(intIndex)
 	case *parser.IntegerLiteral:
 		number := int32(expr.Value)
 		if number >= -128 && number < 128 {
-			bc.opBipush(byte(int8(number)))
+			bc.opBipush(byte(number))
 		} else {
 			intIndex := c.cp.AddInteger(int32(expr.Value))
 			bc.opLoadConstant(intIndex)
@@ -123,11 +160,11 @@ func (c *Code) compileExpression(expr parser.Expression) (bc ByteCode) {
 		index := c.getLocal(expr.Name)
 		switch expr.Variable.VarType {
 		case parser.TypeInt, parser.TypeBoolean:
-			bc.opIload(index)
+			bc.opLocal(op_iload_0, op_iload, index)
 		case parser.TypeFloat:
-			bc.opFload(index)
+			bc.opLocal(op_fload_0, op_fload, index)
 		default:
-			bc.opAload(index)
+			bc.opLocal(op_aload_0, op_aload, index)
 		}
 	default:
 		panic(fmt.Sprintf("Unhandled expression type: %T", expr))
@@ -147,11 +184,11 @@ func (c *Code) compileAssignmentExpression(expr parser.AssignmentExpression) (bc
 		}
 		switch left.Variable.VarType {
 		case parser.TypeInt, parser.TypeBoolean:
-			bc.opIstore(index)
+			bc.opLocal(op_istore_0, op_istore, index)
 		case parser.TypeFloat:
-			bc.opFstore(index)
+			bc.opLocal(op_fstore_0, op_fstore, index)
 		default:
-			bc.opAstore(index)
+			bc.opLocal(op_astore_0, op_astore, index)
 		}
 	default:
 		panic(fmt.Sprintf("Unhandled Assignment type: %T", expr))
@@ -161,82 +198,36 @@ func (c *Code) compileAssignmentExpression(expr parser.AssignmentExpression) (bc
 
 func (c *Code) compileUnaryExpression(expr parser.UnaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.Value)
-	bc.dump(c.compileExpressionNode(expr.TypeInfo))
+	bc.dump(c.compileExpressionOperation(expr.TypeInfo))
 	return
 }
 
 func (c *Code) compileBinaryExpression(expr parser.BinaryExpression) (bc ByteCode) {
 	bc = c.compileExpression(expr.Left)
 	if expr.TypeInfo.LeftTo != parser.Bop_none {
-		bc.dump(c.compileExpressionNode(expr.TypeInfo.LeftTo))
+		bc.dump(c.compileExpressionOperation(expr.TypeInfo.LeftTo))
 	}
 	bc.dump(c.compileExpression(expr.Right))
 	if expr.TypeInfo.RightTo != parser.Bop_none {
-		bc.dump(c.compileExpressionNode(expr.TypeInfo.RightTo))
+		bc.dump(c.compileExpressionOperation(expr.TypeInfo.RightTo))
 	}
-	bc.dump(c.compileExpressionNode(expr.TypeInfo.OperationType))
+	bc.dump(c.compileExpressionOperation(expr.TypeInfo.OperationType))
 	return bc
 }
 
-func (c *Code) compileExpressionNode(opType parser.ExpOpTypeId) (bc ByteCode) {
+func (c *Code) compileExpressionOperation(opType parser.ExpOpTypeId) (bc ByteCode) {
+	if opcode, exists := opcodeForOpr[opType]; exists {
+		bc.writeU1(opcode)
+		return
+	}
+	if cmp, exists := comparisonOpcode[opType]; exists {
+		c.compileComparison(&bc, cmp.opcode, cmp.isFloat)
+		return
+	}
 	switch opType {
-	case parser.Bop_iadd:
-		bc.writeU1(op_iadd)
-	case parser.Bop_isub:
-		bc.writeU1(op_isub)
-	case parser.Bop_imul:
-		bc.writeU1(op_imul)
-	case parser.Bop_idiv:
-		bc.writeU1(op_idiv)
-	case parser.Bop_irem:
-		bc.writeU1(op_irem)
-	case parser.Bop_fadd:
-		bc.writeU1(op_fadd)
-	case parser.Bop_fsub:
-		bc.writeU1(op_fsub)
-	case parser.Bop_fmul:
-		bc.writeU1(op_fmul)
-	case parser.Bop_fdiv:
-		bc.writeU1(op_fdiv)
-	case parser.Bop_frem:
-		bc.writeU1(op_frem)
-	case parser.Bop_i2f:
-		bc.writeU1(op_i2f)
-	case parser.Bop_iand:
-		bc.writeU1(op_iand)
-	case parser.Bop_ior:
-		bc.writeU1(op_ior)
-	case parser.Uop_ineg:
-		bc.writeU1(op_ineg)
-	case parser.Uop_fneg:
-		bc.writeU1(op_fneg)
 	case parser.Uop_not:
 		bc.writeU1(op_iconst_1)
 		bc.writeU1(op_ixor)
-	case parser.Bop_icmp_lt:
-		c.compileComparison(&bc, op_if_icmplt, false)
-	case parser.Bop_icmp_gt:
-		c.compileComparison(&bc, op_if_icmpgt, false)
-	case parser.Bop_icmp_le:
-		c.compileComparison(&bc, op_if_icmple, false)
-	case parser.Bop_icmp_ge:
-		c.compileComparison(&bc, op_if_icmpge, false)
-	case parser.Bop_icmp_eq:
-		c.compileComparison(&bc, op_if_icmpeq, false)
-	case parser.Bop_icmp_ne:
-		c.compileComparison(&bc, op_if_icmpne, false)
-	case parser.Bop_fcmp_lt:
-		c.compileComparison(&bc, op_iflt, true)
-	case parser.Bop_fcmp_gt:
-		c.compileComparison(&bc, op_ifgt, true)
-	case parser.Bop_fcmp_le:
-		c.compileComparison(&bc, op_ifle, true)
-	case parser.Bop_fcmp_ge:
-		c.compileComparison(&bc, op_ifge, true)
-	case parser.Bop_fcmp_eq:
-		c.compileComparison(&bc, op_ifeq, true)
-	case parser.Bop_fcmp_ne:
-		c.compileComparison(&bc, op_ifne, true)
 	case parser.Bop_s_concat:
 		bc.opInvokeVirtual(c.cp.AddMethodRef("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;"))
 	case parser.Bop_s_eq:

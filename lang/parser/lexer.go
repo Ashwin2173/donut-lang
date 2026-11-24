@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var tokenGrammar = regexp.MustCompile(strings.Join([]string{
+var tokenGrammer = regexp.MustCompile(strings.Join([]string{
 	`(?P<whitespace>[ \t\r]+)`,
 	`(?P<comment>//[^\n]*)`,
 	`(?P<k_function>\bfunction\b)`,
@@ -44,7 +44,7 @@ var tokenGrammar = regexp.MustCompile(strings.Join([]string{
 	`(?P<newline>\n)`,
 }, "|"))
 
-var groupNames = tokenGrammar.SubexpNames()
+var groupNames = tokenGrammer.SubexpNames()
 
 type TokenType int
 
@@ -105,7 +105,7 @@ func Tokenize(source string) []Word {
 	tokens := make([]Word, 0)
 	var line uint = 1
 	var lineStart uint = 0
-	for _, match := range tokenGrammar.FindAllStringSubmatchIndex(source, -1) {
+	for _, match := range tokenGrammer.FindAllStringSubmatchIndex(source, -1) {
 		start, end := uint(match[0]), uint(match[1])
 		raw := source[start:end]
 		var tokenType TokenType

@@ -1,11 +1,4 @@
 function main() {
-    x := 10;
-    if true {
-        x := 100;
-        print(x);
-    }
-    z := 0;
-    print(x);
-    print(z);
+    print("Things are working fine...");
     return;
 }

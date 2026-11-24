@@ -265,11 +265,11 @@ func (p *Parser) scanAssignment() (Expression, error) {
 		switch binExpr.Left.(type) {
 		case *Identifier:
 			assignExpr := &AssignmentExpression{
-				Left: binExpr.Left,
+				Left:       binExpr.Left,
 				binaryType: binExpr.binaryType,
-				Right: binExpr.Right,
-				line: binExpr.line,
-				TypeInfo: binExpr.TypeInfo,
+				Right:      binExpr.Right,
+				line:       binExpr.line,
+				TypeInfo:   binExpr.TypeInfo,
 			}
 			return assignExpr, nil
 		default:

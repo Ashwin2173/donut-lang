@@ -73,6 +73,8 @@ func (c ConstantMethodRef) isConstant()     {}
 func (c ConstantNameAndType) isConstant()   {}
 func (c ConstantInvokeDynamic) isConstant() {}
 
+// todo: remove all the redudant code from here ( create a intern helper function)
+
 func (cp *ConstantPool) AddUtf8(value string) (index uint16) {
 	newConstant := ConstantUtf8{
 		value: value,
