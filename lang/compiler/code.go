@@ -88,7 +88,7 @@ func (c *Code) compileStatement(stmt parser.Statement) (bc ByteCode) {
 	case *parser.IfStatement:
 		bc.dump(c.compileIfStmt(*stmt))
 	case *parser.BlockStatement:
-		c.LocalsStack = append(c.LocalsStack, make(map[string]uint16))
+		c.pushLocalsStack()
 		for _, s := range stmt.Body {
 			bc.dump(c.compileStatement(s))
 		}
@@ -277,6 +277,10 @@ func (c *Code) getLocal(name string) uint16 {
 		}
 	}
 	panic("RUC at compiler/code/getLocal: Analyzer failed to catch this")
+}
+
+func (c *Code) pushLocalsStack() {
+	c.LocalsStack = append(c.LocalsStack, make(map[string]uint16))
 }
 
 func (c *Code) popLocalsStack() {
