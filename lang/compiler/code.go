@@ -276,7 +276,7 @@ func (c *Code) getLocal(name string) uint16 {
 			return index
 		}
 	}
-	panic("Reached unreachable code: Failed at getLocal while compiling; Parser failed to cature this.")
+	panic("RUC at compiler/code/getLocal: Analyzer failed to catch this")
 }
 
 func (c *Code) popLocalsStack() {

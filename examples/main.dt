@@ -1,4 +1,5 @@
 function main() {
+    var := false;
     print("Things are working fine...");
     return;
 }
