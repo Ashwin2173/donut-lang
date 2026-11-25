@@ -80,13 +80,13 @@ func (c Code) GetByteCode(context *Context) (bc ByteCode) {
 func (c *Code) compileStatement(stmt parser.Statement) (bc ByteCode) {
 	switch stmt := stmt.(type) {
 	case *parser.ReturnStatement:
-		bc.writeU1(op_return)
+		bc.dump(c.compileReturnStmt(stmt))
 	case *parser.ExpressionStatement:
 		bc.dump(c.compileExpression(stmt.Expression))
 	case *parser.WhileStatement:
-		bc.dump(c.compileWhileStmt(*stmt))
+		bc.dump(c.compileWhileStmt(stmt))
 	case *parser.IfStatement:
-		bc.dump(c.compileIfStmt(*stmt))
+		bc.dump(c.compileIfStmt(stmt))
 	case *parser.BlockStatement:
 		c.pushLocalsStack()
 		for _, s := range stmt.Body {
@@ -102,7 +102,22 @@ func (c *Code) compileStatement(stmt parser.Statement) (bc ByteCode) {
 	return
 }
 
-func (c *Code) compileIfStmt(stmt parser.IfStatement) (bc ByteCode) {
+func (c *Code) compileReturnStmt(stmt *parser.ReturnStatement) (bc ByteCode) {
+	bc.dump(c.compileExpression(stmt.Expression))
+	switch stmt.ReturnType {
+	case parser.TypeBoolean, parser.TypeInt:
+		bc.writeU1(op_ireturn)
+	case parser.TypeFloat:
+		bc.writeU1(op_freturn)
+	case parser.TypeVoid:
+		bc.writeU1(op_return)
+	default:
+		bc.writeU1(op_areturn)
+	}
+	return
+}
+
+func (c *Code) compileIfStmt(stmt *parser.IfStatement) (bc ByteCode) {
 	bc.dump(c.compileExpression(stmt.Test))
 	consequentPointer := bc.writeJumpPlaceholder(op_ifeq)
 	bc.dump(c.compileStatement(stmt.Consequent))
@@ -117,7 +132,7 @@ func (c *Code) compileIfStmt(stmt parser.IfStatement) (bc ByteCode) {
 	return
 }
 
-func (c *Code) compileWhileStmt(stmt parser.WhileStatement) (bc ByteCode) {
+func (c *Code) compileWhileStmt(stmt *parser.WhileStatement) (bc ByteCode) {
 	start := len(bc.byteCode)
 	bc.dump(c.compileExpression(stmt.Test))
 	exitJump := bc.writeJumpPlaceholder(op_ifeq)

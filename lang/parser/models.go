@@ -20,6 +20,7 @@ type FunctionStatement struct {
 	Arguments  []Identifier
 	ReturnType string
 	Body       BlockStatement
+	line       uint
 }
 
 type BlockStatement struct {
@@ -28,7 +29,8 @@ type BlockStatement struct {
 }
 
 type ReturnStatement struct {
-	expression Expression
+	Expression Expression
+	ReturnType TypeId
 	line       uint
 }
 

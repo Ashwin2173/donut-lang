@@ -60,7 +60,7 @@ func (c Compiler) getMethods(context *Context) []Method {
 		methods[i] = *NewMethod(context, Method{
 			AccessFlag: AccPublic | AccStatic,
 			Name:       function.Name,
-			Descriptor: "([Ljava/lang/String;)V", // todo: unhardcode this
+			Descriptor: parserfnDescriptors("([Ljava/lang/String;)", function.ReturnType),
 			Code:       *code,
 			Attributes: []string{},
 		})

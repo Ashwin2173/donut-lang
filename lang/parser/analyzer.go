@@ -8,11 +8,13 @@ import (
 )
 
 type Context struct {
-	variableStack   []map[string]*Variable
-	functionPointer *FunctionStatement
+	variableStack       []map[string]*Variable
+	functionPointer     *FunctionStatement
+	functionReturnIndex TypeId
 }
 
 func NewContext(function *FunctionStatement) *Context {
+
 	return &Context{
 		variableStack:   make([]map[string]*Variable, 0),
 		functionPointer: function,
@@ -44,13 +46,27 @@ func NewAnalyzer(filePath string, program Program) *Analyzer {
 
 func (a *Analyzer) Analyze() error {
 	for _, fnStmt := range a.program.Functions {
-		a.context = NewContext(&fnStmt)
-		err := a.handleStatement(&fnStmt.Body)
-		if err != nil {
+		if err := a.initFunctionAnalyzer(&fnStmt); err != nil {
+			return err
+		}
+		if err := a.handleStatement(&fnStmt.Body); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (a *Analyzer) initFunctionAnalyzer(fnStmt *FunctionStatement) error {
+	a.context = NewContext(fnStmt)
+	expectedType, exists := a.typeRegister[a.context.functionPointer.ReturnType]
+	if exists {
+		a.context.functionReturnIndex = expectedType
+		return nil
+	}
+	return a.fail(
+		fmt.Sprintf("Unknown return Type '%s' at function '%s'", fnStmt.ReturnType, fnStmt.Name),
+		fnStmt.line,
+	)
 }
 
 func (a *Analyzer) handleStatement(stmt Statement) error {
@@ -59,11 +75,13 @@ func (a *Analyzer) handleStatement(stmt Statement) error {
 	case *ExpressionStatement:
 		_, err = a.handleExpression(stmt.Expression)
 	case *BlockStatement:
-		err = a.handleBlockstmt(*stmt)
+		err = a.handleBlockstmt(stmt)
 	case *WhileStatement:
-		err = a.handleWhileStmt(*stmt)
+		err = a.handleWhileStmt(stmt)
+	case *ReturnStatement:
+		err = a.handleReturnStmt(stmt)
 	case *IfStatement:
-		err = a.handleIfStmt(*stmt)
+		err = a.handleIfStmt(stmt)
 	case *PrintStatement:
 		// test
 		var t TypeId
@@ -86,7 +104,7 @@ func (a *Analyzer) handleStatement(stmt Statement) error {
 	return err
 }
 
-func (a *Analyzer) handleBlockstmt(stmt BlockStatement) error {
+func (a *Analyzer) handleBlockstmt(stmt *BlockStatement) error {
 	a.context.variableStack = append(a.context.variableStack, make(map[string]*Variable))
 	for _, stmt := range stmt.Body {
 		if err := a.handleStatement(stmt); err != nil {
@@ -97,7 +115,19 @@ func (a *Analyzer) handleBlockstmt(stmt BlockStatement) error {
 	return nil
 }
 
-func (a *Analyzer) handleIfStmt(stmt IfStatement) error {
+func (a *Analyzer) handleReturnStmt(stmt *ReturnStatement) error {
+	exprType, err := a.handleExpression(stmt.Expression)
+	stmt.ReturnType = exprType
+	if err != nil {
+		return err
+	}
+	if exprType != a.context.functionReturnIndex {
+		return a.fail("Incompatible return type value", stmt.line)
+	}
+	return nil
+}
+
+func (a *Analyzer) handleIfStmt(stmt *IfStatement) error {
 	exprType, err := a.handleExpression(stmt.Test)
 	if err != nil {
 		return err
@@ -115,7 +145,7 @@ func (a *Analyzer) handleIfStmt(stmt IfStatement) error {
 	return nil
 }
 
-func (a *Analyzer) handleWhileStmt(stmt WhileStatement) error {
+func (a *Analyzer) handleWhileStmt(stmt *WhileStatement) error {
 	exprType, err := a.handleExpression(stmt.Test)
 	if err != nil {
 		return err

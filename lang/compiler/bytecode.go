@@ -28,6 +28,9 @@ const (
 	op_if_icmple       byte = 0xa4
 	op_goto            byte = 0xa7
 	op_return          byte = 0xb1
+	op_ireturn         byte = 0xac
+	op_freturn         byte = 0xae
+	op_areturn         byte = 0xb0
 	op_invoke_virtual  byte = 0xb6
 	op_invoke_static   byte = 0xb8
 	op_invoke_dynamic  byte = 0xba

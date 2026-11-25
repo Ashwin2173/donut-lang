@@ -87,6 +87,7 @@ func (p *Parser) scanFunctionDef() (*FunctionStatement, error) {
 		Name:       name.Raw,
 		Body:       *body,
 		ReturnType: returnType,
+		line:       name.Line,
 	}, nil
 }
 
@@ -230,7 +231,7 @@ func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {
 		expression = expstmt.Expression
 	}
 	return &ReturnStatement{
-		expression: expression,
+		Expression: expression,
 		line:       ret.Line,
 	}, nil
 }

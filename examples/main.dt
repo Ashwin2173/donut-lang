@@ -1,6 +1,4 @@
 function main() {
-    var := false;
-    print("Things are working fine...");
-    print(var);
+    x := 10;
     return;
 }
