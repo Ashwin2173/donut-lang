@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	op_const_null      byte = 0x1
 	op_iconst_0        byte = 0x03
 	op_iconst_1        byte = 0x04
 	op_load_constant   byte = 0x12

@@ -103,7 +103,10 @@ func (c *Code) compileStatement(stmt parser.Statement) (bc ByteCode) {
 }
 
 func (c *Code) compileReturnStmt(stmt *parser.ReturnStatement) (bc ByteCode) {
-	bc.dump(c.compileExpression(stmt.Expression))
+	_, isNull := stmt.Expression.(*parser.NullLiteral)
+	if !isNull {
+		bc.dump(c.compileExpression(stmt.Expression))
+	}
 	switch stmt.ReturnType {
 	case parser.TypeBoolean, parser.TypeInt:
 		bc.writeU1(op_ireturn)
@@ -157,6 +160,8 @@ func (c *Code) compileExpression(expr parser.Expression) (bc ByteCode) {
 	case *parser.FloatLiteral:
 		floatIndex := c.cp.AddFloat(float32(expr.Value))
 		bc.opLoadConstant(floatIndex)
+	case *parser.NullLiteral:
+		bc.writeU1(op_const_null)
 	case *parser.BooleanLiteral:
 		if expr.Value {
 			bc.writeU1(op_iconst_1)

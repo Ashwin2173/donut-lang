@@ -8,6 +8,10 @@ import (
 	"donut/lang"
 )
 
+var (
+	nullLiteral = &NullLiteral{}
+)
+
 type Parser struct {
 	filePath string
 	tokens   *Generator[Word]
@@ -199,7 +203,7 @@ func (p *Parser) scanPrintStatement() (*PrintStatement, error) {
 	var expression Expression
 	if token.Type == t_semicolon {
 		p.tokens.next()
-		expression = NullLiteral{}
+		expression = nullLiteral
 	} else {
 		expstmt, err := p.scanExpressionStatement()
 		if err != nil {
@@ -222,7 +226,7 @@ func (p *Parser) scanReturnStatement() (*ReturnStatement, error) {
 	var expression Expression
 	if token.Type == t_semicolon {
 		p.tokens.next()
-		expression = NullLiteral{}
+		expression = nullLiteral
 	} else {
 		expstmt, err := p.scanExpressionStatement()
 		if err != nil {

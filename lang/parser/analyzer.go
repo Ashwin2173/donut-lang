@@ -35,11 +35,11 @@ func NewAnalyzer(filePath string, program Program) *Analyzer {
 		program:   program,
 		functions: make(map[string][]string),
 		typeRegister: map[string]TypeId{
-			"void":             TypeVoid,
-			"int":              TypeInt,
-			"float":            TypeFloat,
-			"boolean":          TypeBoolean,
-			"java/lang/string": TypeString,
+			"void":    TypeVoid,
+			"int":     TypeInt,
+			"float":   TypeFloat,
+			"boolean": TypeBoolean,
+			"string":  TypeString,
 		},
 	}
 }
@@ -117,10 +117,10 @@ func (a *Analyzer) handleBlockstmt(stmt *BlockStatement) error {
 
 func (a *Analyzer) handleReturnStmt(stmt *ReturnStatement) error {
 	exprType, err := a.handleExpression(stmt.Expression)
-	stmt.ReturnType = exprType
 	if err != nil {
 		return err
 	}
+	stmt.ReturnType = exprType
 	if exprType != a.context.functionReturnIndex {
 		return a.fail("Incompatible return type value", stmt.line)
 	}
@@ -166,6 +166,8 @@ func (a *Analyzer) handleExpression(expr Expression) (TypeId, error) {
 		return TypeString, nil
 	case *BooleanLiteral:
 		return TypeBoolean, nil
+	case *NullLiteral:
+		return TypeVoid, nil
 	case *UnaryExpression:
 		return a.handleUnaryExpression(expr)
 	case *BinaryExpression:
